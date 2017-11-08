@@ -1,0 +1,1 @@
+# TODO singlethoon of stands.ini config
