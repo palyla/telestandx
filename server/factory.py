@@ -5,22 +5,24 @@ from server.models.stand import Stand
 # TODO stand factory
 
 
+class QueueFactory:
+    @staticmethod
+    def get():
+        pass
+
+
 class StandFactory:
-    def __init__(self):
-        self.config = Config(conf_path='../stands.ini')
-
-    def get_one(self):
-        for block in self.config:
+    @staticmethod
+    def get():
+        config = Config(conf_path='stands.ini')
+        for block in config:
+            if 'sys' in block or 'DEFAULT' in block:
+                continue
             yield Stand(
-                block['name'],
-                block['ip'],
-                block['login'],
-                block['password'],
-                block['platforms']
+                config[block]['name'],
+                config[block]['ip'],
+                config[block]['login'],
+                config[block]['password'],
+                config[block]['platforms']
             )
-
-    def __next__(self):
-        return self.get_one()
-
-    def __iter__(self):
-        return self
+        raise StopIteration

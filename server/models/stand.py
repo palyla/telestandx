@@ -2,12 +2,17 @@ from server.models.queue import Queue
 
 
 class Stand:
-    def __init__(self, name, ip, login, password, platforms, queue: Queue=None):
+    def __init__(self, name, ip, login, password, platforms, alias=None, queue: Queue=None):
         self.name       = name
         self.ip         = ip
         self.login      = login
         self.password   = password
         self.platforms  = platforms.split()
+        if alias:
+            self.alias  = alias
 
         if queue:
-            self.queue = queue
+            self.queue  = queue
+
+    def __str__(self):
+        return '{0} {1}'.format(self.name, self.ip)
