@@ -15,7 +15,7 @@ LIST_OF_ADMINS = ()
 
 
 def restricted(func):
-    print('123123123')
+    print('restricted!')
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
         user_id = update.effective_user.id
@@ -40,21 +40,31 @@ class BotRoutine:
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
 
+        self.handler = CommandHandler('test', self.alias_test, pass_args=True)
+        self.updater.dispatcher.add_handler(self.handler)
+
         for id, stand in self.stands.items():
             self.handler = CommandHandler(stand.alias, self.one_stand_cmd, pass_args=True)
             self.updater.dispatcher.add_handler(self.handler)
 
-        #self.install_handler('stands', self.stands_cmd)
-        #self.install_handler('1', self.alias_test, pass_args=True)
-
     def start(self):
         self.updater.start_polling()
 
-    def one_stand_cmd(self, bot, update):
-        print('----------<<')
-        print(update.message)
+    def one_stand_cmd(self, bot, update, args):
+        if not args:
+            alias = update.message['text'][1:]
+            stand = self.stands[alias]
+            bot.send_message(
+                parse_mode=ParseMode.MARKDOWN,
+                chat_id=update.message.chat_id,
+                text=repr(stand)
+            )
+        elif 'take' in args[0]:
+            alias = update.message['text'][1:].split()[0]
+            stand = self.stands[alias]
+            stand.new_user(update.effective_user['username'])
 
-    @restricted
+    #@restricted
     def stands_cmd(self, bot, update):
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
@@ -110,8 +120,9 @@ if __name__ == '__main__':
     stands = {}
     for stand in StandFactory.get():
         stand.set_queue(QueueFactory.get_one())
-        stands[uuid.uuid4().hex] = stand
+        stands[stand.alias] = stand
 
-    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    #bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    bot = BotRoutine(stands)
     bot.start()
 
