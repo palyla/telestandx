@@ -26,9 +26,16 @@ class Stand:
 
     def __repr__(self):
         # TODO return collected info by /1 cmd (example)
-        return uuid.uuid4().hex
+        data = self.collect_info()
+        if self.state == State.FREE:
+            return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
+        elif self.state == State.BUSY:
+            pass
+        elif self.state == State.ACTIVE:
+            pass
 
     def __str__(self):
+        data = self.collect_info()
         '{0} *192.168.38.201 \[alias /1\]* @СергейЮсупов и еще 4\n`cl_all`\n\n'
         if self.state == State.FREE:
             return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
