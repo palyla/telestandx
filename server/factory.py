@@ -1,3 +1,5 @@
+import queue
+
 from server.utils.config import Config
 from server.models.stand import Stand
 
@@ -6,9 +8,13 @@ from server.models.stand import Stand
 
 
 class QueueFactory:
+    #@staticmethod
+    # def get_one():
+    #     return Queue()
+
     @staticmethod
-    def get():
-        pass
+    def get_one():
+        return queue.Queue(maxsize=10)
 
 
 class StandFactory:
@@ -23,6 +29,7 @@ class StandFactory:
                 config[block]['ip'],
                 config[block]['login'],
                 config[block]['password'],
-                config[block]['platforms']
+                config[block]['platforms'],
+                config[block]['alias']
             )
         raise StopIteration

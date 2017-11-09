@@ -4,7 +4,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram import ParseMode
 
-from server.factory import StandFactory
+from server.factory import StandFactory, QueueFactory
 from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8
 
 
@@ -18,12 +18,18 @@ class BotRoutine:
             })
         else:
             self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
-        requests
 
-        self.stands_handler = CommandHandler('stands', self.stands_cmd)
-        self.updater.dispatcher.add_handler(self.stands_handler)
-        self.stands_handler = CommandHandler('1', self.alias_test, pass_args=True)
-        self.updater.dispatcher.add_handler(self.stands_handler)
+        self.handler = CommandHandler('stands', self.stands_cmd)
+        self.updater.dispatcher.add_handler(self.handler)
+        self.handler = CommandHandler('1', self.alias_test, pass_args=True)
+        self.updater.dispatcher.add_handler(self.handler)
+        #self.install_handler('stands', self.stands_cmd)
+        #self.install_handler('1', self.alias_test, pass_args=True)
+
+
+    def install_handler(self, name, func, **kwargs):
+        handler = CommandHandler(name, func, kwargs)
+        self.updater.dispatcher.add_handler(handler)
 
     def start(self):
         self.updater.start_polling()
@@ -57,6 +63,8 @@ class BotRoutine:
                 /1 take   - Take the stand
                 /1 give   - Give the stand to person
                 /1 return - Return the stand
+                /take 1,2,3,4,5,6,7,8,9 - Take multiply stands
+                /giveup   - Free all queue's
         '''
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
@@ -70,6 +78,7 @@ class BotRoutine:
 if __name__ == '__main__':
     stands = {}
     for stand in StandFactory.get():
+        stand.set_queue(QueueFactory.get_one())
         stands[str(stand)] = stand
 
     bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
