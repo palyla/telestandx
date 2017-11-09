@@ -26,16 +26,10 @@ class BotRoutine:
         #self.install_handler('stands', self.stands_cmd)
         #self.install_handler('1', self.alias_test, pass_args=True)
 
-
-    def install_handler(self, name, func, **kwargs):
-        handler = CommandHandler(name, func, kwargs)
-        self.updater.dispatcher.add_handler(handler)
-
     def start(self):
         self.updater.start_polling()
 
-    @staticmethod
-    def stands_cmd(bot, update):
+    def stands_cmd(self, bot, update):
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
             chat_id=update.message.chat_id,
@@ -45,18 +39,13 @@ class BotRoutine:
                 .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
         )
 
-        bot.send_message(
-            parse_mode=ParseMode.MARKDOWN,
-            chat_id=update.message.chat_id,
-            text='{0} *192.168.38.201 [alias /1]*\n`cl_all`\n\n'
-                 '{1} *192.168.38.202 [alias /2]*\n`ig-10 hw-100-x1 hw-100-x2 hw-100-x3 hw-100-x8 hw-100-n1 xf-100-n1 kb-100-n1`\n\n'
-                 '{1} *192.168.38.203 [alias /3]*\n`hw-1000-q2 hw-1000-q3 hw-1000-q4 hw-2000-q2 hw-2000-q3 hw-5000-q1 xf-1000-q4 xf-5000-q1`\n\n'
-                 '{2} *192.168.38.204 [alias /4]*\n`xf-va`\n\n'
-                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
-        )
+        msg = ''
+        for stand in self.stands:
+            msg += '{}\n\n'.format(str(stand))
 
-    @staticmethod
-    def alias_test(bot, update, args):
+        bot.send_message(parse_mode=ParseMode.MARKDOWN, chat_id=update.message.chat_id, text=msg)
+
+    def alias_test(self, bot, update, args):
         '''
             Examples of aliases:
                 /1        - Show basic info and queue

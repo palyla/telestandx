@@ -1,6 +1,14 @@
 import uuid
+from enum import Enum
 
 from queue import Queue
+from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8
+
+
+class State(Enum):
+    FREE   = 0,
+    BUSY   = 1,
+    ACTIVE = 2,
 
 
 class Stand:
@@ -9,14 +17,24 @@ class Stand:
         self.ip         = ip
         self.login      = login
         self.password   = password
-        self.platforms  = platforms.split()
+        self.platforms  = platforms
         self.alias      = alias
+        self.state      = State.FREE
 
         if queue:
             self.queue  = queue
 
-    def __str__(self):
+    def __repr__(self):
         return uuid.uuid4().hex
+
+    def __str__(self):
+        '{0} *192.168.38.201 \[alias /1\]* @СергейЮсупов и еще 4\n`cl_all`\n\n'
+        if self.state == State.FREE:
+            return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
+        elif self.state == State.BUSY:
+            return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, str(self.user), self.platforms)
+        elif self.state == State.ACTIVE:
+            return '{} *{}* /{} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, self.platforms)
 
     def set_queue(self, queue):
         self.queue = queue
