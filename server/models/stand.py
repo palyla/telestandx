@@ -17,4 +17,4 @@ class Stand:
             self.queue  = queue
 
     def __str__(self):
-        return uuid.uuid4()
+        return uuid.uuid4().hex
