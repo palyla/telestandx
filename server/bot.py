@@ -5,7 +5,7 @@ from telegram.ext import Updater
 from telegram import ParseMode
 
 from server.factory import StandFactory, QueueFactory
-from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8
+from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8
 
 
 class BotRoutine:
@@ -21,6 +21,8 @@ class BotRoutine:
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
+
+
         self.handler = CommandHandler('1', self.alias_test, pass_args=True)
         self.updater.dispatcher.add_handler(self.handler)
         #self.install_handler('stands', self.stands_cmd)
@@ -55,11 +57,27 @@ class BotRoutine:
                 /take 1,2,3,4,5,6,7,8,9 - Take multiply stands
                 /giveup   - Free all queue's
         '''
+        # bot.send_message(
+        #     parse_mode=ParseMode.MARKDOWN,
+        #     chat_id=update.message.chat_id,
+        #     text='{0} *192.168.38.201 [alias /1]*\n`cl_all`\n\n'
+        #         .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
+        # )
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
             chat_id=update.message.chat_id,
-            text='{0} *192.168.38.201 [alias /1]*\n`cl_all`\n\n'
-                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
+            text='{2} *192.168.38.201* at @palyla, last activity 16:34\n'
+                 'Queue: \n'
+                 '1. @palyla, expecting 4 hours already\n'
+                 '2. @palyla, expecting 1 hours already\n'
+                 '3. @palyla, expecting less 1 hour already\n\n'
+                 '{3} TEST IN PROGRESS {3}\n'
+                 '`Started at 21:00\n'
+                 'Current scenario modbus.xml`\n\n'
+                 'SSH sessions:\n'
+                 '`autotest pts/5 2017-11-09 16:33 (10.0.112.36)\n'
+                 'autotest pts/2 2017-11-08 13:42 (192.168.38.6)`'
+                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8)
         )
         print(args)
 

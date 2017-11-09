@@ -13,18 +13,19 @@ class State(Enum):
 
 class Stand:
     def __init__(self, name, ip, login, password, platforms, alias, queue: Queue=None):
-        self.name       = name
-        self.ip         = ip
-        self.login      = login
-        self.password   = password
-        self.platforms  = platforms
-        self.alias      = alias
-        self.state      = State.FREE
+        self.name      = name
+        self.ip        = ip
+        self.login     = login
+        self.password  = password
+        self.platforms = platforms
+        self.alias     = alias
+        self.state     = State.FREE
 
         if queue:
-            self.queue  = queue
+            self.queue = queue
 
     def __repr__(self):
+        # TODO return collected info by /1 cmd (example)
         return uuid.uuid4().hex
 
     def __str__(self):
@@ -35,6 +36,20 @@ class Stand:
             return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, str(self.user), self.platforms)
         elif self.state == State.ACTIVE:
             return '{} *{}* /{} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, self.platforms)
+
+    def collect_info(self):
+        # last activity
+        # queue
+        # tests is going on?
+        # current ssh sessions
+        info = {}
+
+
+
+
+
+        return info
+
 
     def set_queue(self, queue):
         self.queue = queue
