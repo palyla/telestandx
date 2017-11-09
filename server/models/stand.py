@@ -1,3 +1,5 @@
+import uuid
+
 from server.models.queue import Queue
 
 
@@ -15,4 +17,4 @@ class Stand:
             self.queue  = queue
 
     def __str__(self):
-        return '{0} {1}'.format(self.name, self.ip)
+        return uuid.uuid4()

@@ -13,6 +13,8 @@ class BotRoutine:
         self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
         self.stands_handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.stands_handler)
+        self.stands_handler = CommandHandler('1', self.alias_test, pass_args=True)
+        self.updater.dispatcher.add_handler(self.stands_handler)
 
     def start(self):
         self.updater.start_polling()
@@ -38,12 +40,29 @@ class BotRoutine:
                 .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
         )
 
+    @staticmethod
+    def alias_test(bot, update, args):
+        '''
+            Examples of aliases:
+                /1        - Show basic info and queue
+                /1 take   - Take the stand
+                /1 give   - Give the stand to person
+                /1 return - Return the stand
+        '''
+        bot.send_message(
+            parse_mode=ParseMode.MARKDOWN,
+            chat_id=update.message.chat_id,
+            text='{0} *192.168.38.201 [alias /1]*\n`cl_all`\n\n'
+                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
+        )
+        print(args)
+
 
 if __name__ == '__main__':
     stands = {}
     for stand in StandFactory.get():
         stands[str(stand)] = stand
 
-    #bot = BotRoutine()
-    #bot.start()
+    bot = BotRoutine(stands)
+    bot.start()
 
