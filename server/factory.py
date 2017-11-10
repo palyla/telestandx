@@ -1,8 +1,6 @@
-import queue
-
 from server.utils.config import Config
 from server.models.stand import Stand
-
+from server.models.queue import Queue
 # TODO queue factory
 # TODO stand factory
 
@@ -14,7 +12,7 @@ class QueueFactory:
 
     @staticmethod
     def get_one():
-        return queue.Queue(maxsize=10)
+        return Queue(maxsize=10)
 
 
 class StandFactory:

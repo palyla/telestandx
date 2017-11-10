@@ -19,7 +19,8 @@ class Stand:
         self.password      = password
         self.platforms     = platforms
         self.alias         = alias
-        self.user = None
+        self.user          = None
+        self.state         = State.FREE
         if queue:
             self.queue = queue
 
@@ -27,13 +28,38 @@ class Stand:
         # TODO return collected info by /1 cmd (example)
         data = self.collect_info()
         if data['state'] == State.FREE:
-            return '{} *{}* \n' \
-                   ' ``'.format(AVAIL_SMILE_UTF8, self.ip)
+            return '{} *{}* at {},  last activity {}\n' \
+                   'Queue:\n' \
+                   '{}\n\n' \
+                   'SSH sessions:\n' \
+                   '{}'.format(AVAIL_SMILE_UTF8, self.ip, self.user, data['last_activity'],
+                               str(self.queue), data['ssh_clients'])
         elif data['state'] == State.BUSY:
+            try:
+                if data['tests']['is_running']:
+                    test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
+                                           '`Started at {1}\n' \
+                                           'Current scenario {2}`'.format(GEAR_SMILE_UTF8, data['tests']['start_time'], data['tests']['scenario'])
+                else:
+                    test_in_progress_str = ''
+
+                return '{} *{}* at {},  last activity {}\n' \
+                       'Queue:\n' \
+                       '{}\n\n' \
+                       '{}\n\n' \
+                       'SSH sessions:\n' \
+                       '{}'.format(CROSS_SMILE_UTF8, self.ip, self.user, data['last_activity'],
+                                   str(self.queue), test_in_progress_str, data['ssh_clients'])
+            except Exception as e:
+                print(e)
+                print(e)
+                print(e)
+                print(e)
+        elif data['state'] == State.ACTIVE:
             if data['tests']['is_running']:
                 test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
                                        '`Started at {1}\n' \
-                                       'Current scenario {2}`\n\n'.format(GEAR_SMILE_UTF8, data['start_time'], data['scenario'])
+                                       'Current scenario {2}`\n'.format(GEAR_SMILE_UTF8, data['tests']['start_time'], data['tests']['scenario'])
             else:
                 test_in_progress_str = ''
 
@@ -42,27 +68,28 @@ class Stand:
                    '{}\n' \
                    '{}\n' \
                    'SSH sessions:\n' \
-                   '{}'.format(CROSS_SMILE_UTF8, self.ip, self.user, data['last_activity'],
+                   '{}'.format(WARNING_SMILE_UTF8, self.ip, self.user, data['last_activity'],
                                str(self.queue), test_in_progress_str, data['ssh_clients'])
-        elif data['state'] == State.ACTIVE:
-            pass
 
     def __str__(self):
-        #data = self.collect_info()
-        if self.state == State.FREE:
+        data = self.collect_info()
+        if data['state'] == State.FREE:
             return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
-        elif self.state == State.BUSY:
+        elif data['state'] == State.BUSY:
             return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, '@user', self.platforms)
-        elif self.state == State.ACTIVE:
-            return '{} *{}* /{} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, self.platforms)
+        elif data['state'] == State.ACTIVE:
+            return '{} *{}* /{} \n `{}`'.format(WARNING_SMILE_UTF8, self.ip, self.alias, self.platforms)
 
     def collect_info(self):
-        print(self.ip)
-        info = {'state': State.FREE,
+        info = {'state': State.BUSY,
                 'last_activity': '16:43',
                 'tests': {'is_running': True, 'start_time': '14:32', 'scenario': 'modbus.xml'},
                 'ssh_clients': 'autotest pts/5 16:33 (10.0.112.36)\n'
                                'autotest pts/2 13:42 (192.168.38.6)'}
+
+        if 'state' in info:
+            print('Setting up!')
+            self.state = info['state']
 
         return info
 
