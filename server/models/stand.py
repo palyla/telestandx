@@ -48,12 +48,11 @@ class Stand:
             pass
 
     def __str__(self):
-        data = self.collect_info()
-        '{0} *192.168.38.201 \[alias /1\]* @СергейЮсупов и еще 4\n`cl_all`\n\n'
+        #data = self.collect_info()
         if self.state == State.FREE:
             return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
         elif self.state == State.BUSY:
-            return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, str(self.user), self.platforms)
+            return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, '@user', self.platforms)
         elif self.state == State.ACTIVE:
             return '{} *{}* /{} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, self.platforms)
 

@@ -16,6 +16,7 @@ LIST_OF_ADMINS = ()
 
 def restricted(func):
     print('restricted!')
+
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
         user_id = update.effective_user.id
@@ -40,8 +41,8 @@ class BotRoutine:
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
 
-        self.handler = CommandHandler('test', self.alias_test, pass_args=True)
-        self.updater.dispatcher.add_handler(self.handler)
+        # self.handler = CommandHandler('test', self.alias_test, pass_args=True)
+        # self.updater.dispatcher.add_handler(self.handler)
 
         for id, stand in self.stands.items():
             self.handler = CommandHandler(stand.alias, self.one_stand_cmd, pass_args=True)
@@ -76,9 +77,13 @@ class BotRoutine:
         )
 
         msg = ''
-        for id, stand in self.stands.items():
-            msg += '{}\n\n'.format(str(stand))
-
+        try:
+            for id, stand in self.stands.items():
+                print(id)
+                msg += '{}\n\n'.format(str(stand))
+        except Exception as e:
+            print('fuck')
+            print(e)
         bot.send_message(parse_mode=ParseMode.MARKDOWN, chat_id=update.message.chat_id, text=msg)
 
     def alias_test(self, bot, update, args):
