@@ -1,8 +1,10 @@
+import socket
 from enum import IntEnum
 
 from server.models.queue import Queue
 from server.agent_gw import AgentData
-from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8
+from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8, \
+    SLEEP_SMILE_UTF8
 
 
 class State:
@@ -45,7 +47,12 @@ class Stand:
 
     def __repr__(self):
         state = self.state
-        if state.status == State.Status.FREE:
+        if not state:
+            return '{} *{}* at {},  last activity unknown\n' \
+                   'Queue:\n' \
+                   '{}\n\n'.format(SLEEP_SMILE_UTF8, self.ip, self.user, str(self.queue))
+
+        elif state.status == State.Status.FREE:
             return '{} *{}* at {},  last activity {}\n' \
                    'Queue:\n' \
                    '{}\n\n' \
@@ -85,7 +92,9 @@ class Stand:
 
     def __str__(self):
         state = self.state
-        if state.status == State.Status.FREE:
+        if not state:
+            return '{} *{}* /{}\n `{}`'.format(SLEEP_SMILE_UTF8, self.ip, self.alias, self.platforms)
+        elif state.status == State.Status.FREE:
             return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
         elif state.status == State.Status.BUSY:
             return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, '@user', self.platforms)
@@ -98,7 +107,12 @@ class Stand:
 
     @state.getter
     def state(self):
-        return State(self)
+        try:
+            socket.gethostbyaddr(self.ip)
+            return State(self)
+        except socket.herror:
+            return None
+
 
     def set_queue(self, queue):
         self.queue = queue

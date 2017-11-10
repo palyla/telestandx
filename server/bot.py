@@ -7,8 +7,8 @@ from telegram.ext import Updater
 from telegram import ParseMode
 
 from server.factory import StandFactory, QueueFactory
-from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8
-
+from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8, \
+    SLEEP_SMILE_UTF8
 
 LIST_OF_ADMINS = ()
 
@@ -69,10 +69,11 @@ class BotRoutine:
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
             chat_id=update.message.chat_id,
-            text='{0} - Можно забирать \n'
+            text='`{0} - Можно забирать \n'
                  '{2} - Занят \n'
                  '{1} - Есть активность за последние 15 минут \n'
-                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
+                 '{3} - Недоступен в сети \n`'
+                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, SLEEP_SMILE_UTF8)
         )
 
         msg = ''

@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 
 @app.route('/state')
-def hello():
+def state():
     state = {
         'status': State.Status.FREE,
         'last_activity': '14:13',
