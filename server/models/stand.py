@@ -1,14 +1,35 @@
 import uuid
-from enum import Enum
+from enum import IntEnum
 
 from server.models.queue import Queue
+from server.agent_gw import AgentData
 from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8
 
 
-class State(Enum):
-    FREE   = 0,
-    BUSY   = 1,
-    ACTIVE = 2,
+class State:
+    class Status(IntEnum):
+        FREE   = 0,
+        BUSY   = 1,
+        ACTIVE = 2,
+
+    def __init__(self, stand: Stand):
+        self.agent = AgentData(stand.ip)
+
+    @property
+    def status(self):
+        return self.agent.status
+
+    @property
+    def last_activity(self):
+        return self.agent.last_activity
+
+    @property
+    def tests(self):
+        return self.agent.tests
+
+    @property
+    def ssh_clients(self):
+        return self.agent.ssh_clients
 
 
 class Stand:
@@ -20,46 +41,38 @@ class Stand:
         self.platforms     = platforms
         self.alias         = alias
         self.user          = None
-        self.state         = State.FREE
         if queue:
             self.queue = queue
 
     def __repr__(self):
-        # TODO return collected info by /1 cmd (example)
-        data = self.collect_info()
-        if data['state'] == State.FREE:
+        state = self.state
+        if state.status == State.Status.FREE:
             return '{} *{}* at {},  last activity {}\n' \
                    'Queue:\n' \
                    '{}\n\n' \
                    'SSH sessions:\n' \
-                   '{}'.format(AVAIL_SMILE_UTF8, self.ip, self.user, data['last_activity'],
-                               str(self.queue), data['ssh_clients'])
-        elif data['state'] == State.BUSY:
-            try:
-                if data['tests']['is_running']:
-                    test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
-                                           '`Started at {1}\n' \
-                                           'Current scenario {2}`'.format(GEAR_SMILE_UTF8, data['tests']['start_time'], data['tests']['scenario'])
-                else:
-                    test_in_progress_str = ''
-
-                return '{} *{}* at {},  last activity {}\n' \
-                       'Queue:\n' \
-                       '{}\n\n' \
-                       '{}\n\n' \
-                       'SSH sessions:\n' \
-                       '{}'.format(CROSS_SMILE_UTF8, self.ip, self.user, data['last_activity'],
-                                   str(self.queue), test_in_progress_str, data['ssh_clients'])
-            except Exception as e:
-                print(e)
-                print(e)
-                print(e)
-                print(e)
-        elif data['state'] == State.ACTIVE:
-            if data['tests']['is_running']:
+                   '{}'.format(AVAIL_SMILE_UTF8, self.ip, self.user, state.last_activity,
+                               str(self.queue), state.ssh_clients)
+        elif state.status == State.Status.BUSY:
+            if state.tests['is_running']:
                 test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
                                        '`Started at {1}\n' \
-                                       'Current scenario {2}`\n'.format(GEAR_SMILE_UTF8, data['tests']['start_time'], data['tests']['scenario'])
+                                       'Current scenario {2}`'.format(GEAR_SMILE_UTF8, state.tests['start_time'], state.tests['scenario'])
+            else:
+                test_in_progress_str = ''
+
+            return '{} *{}* at {},  last activity {}\n' \
+                   'Queue:\n' \
+                   '{}\n\n' \
+                   '{}\n\n' \
+                   'SSH sessions:\n' \
+                   '{}'.format(CROSS_SMILE_UTF8, self.ip, self.user, state.last_activity,
+                               str(self.queue), test_in_progress_str, state.ssh_clients)
+        elif state.status == State.Status.ACTIVE:
+            if state.tests['is_running']:
+                test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
+                                       '`Started at {1}\n' \
+                                       'Current scenario {2}`\n'.format(GEAR_SMILE_UTF8, state.tests['start_time'], state.tests['scenario'])
             else:
                 test_in_progress_str = ''
 
@@ -68,8 +81,8 @@ class Stand:
                    '{}\n' \
                    '{}\n' \
                    'SSH sessions:\n' \
-                   '{}'.format(WARNING_SMILE_UTF8, self.ip, self.user, data['last_activity'],
-                               str(self.queue), test_in_progress_str, data['ssh_clients'])
+                   '{}'.format(WARNING_SMILE_UTF8, self.ip, self.user, state.last_activity,
+                               str(self.queue), test_in_progress_str, state.ssh_clients)
 
     def __str__(self):
         data = self.collect_info()
@@ -80,19 +93,13 @@ class Stand:
         elif data['state'] == State.ACTIVE:
             return '{} *{}* /{} \n `{}`'.format(WARNING_SMILE_UTF8, self.ip, self.alias, self.platforms)
 
-    def collect_info(self):
-        info = {'state': State.BUSY,
-                'last_activity': '16:43',
-                'tests': {'is_running': True, 'start_time': '14:32', 'scenario': 'modbus.xml'},
-                'ssh_clients': 'autotest pts/5 16:33 (10.0.112.36)\n'
-                               'autotest pts/2 13:42 (192.168.38.6)'}
+    @property
+    def state(self):
+        return None
 
-        if 'state' in info:
-            print('Setting up!')
-            self.state = info['state']
-
-        return info
-
+    @state.getter
+    def state(self):
+        return State(self)
 
     def set_queue(self, queue):
         self.queue = queue
