@@ -1,8 +1,6 @@
 from server.utils.config import Config
 from server.models.stand import Stand
 from server.models.queue import Queue
-# TODO queue factory
-# TODO stand factory
 
 
 class QueueFactory:

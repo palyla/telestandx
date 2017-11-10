@@ -1,5 +1,4 @@
 # 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
-import uuid
 from functools import wraps
 
 import requests
@@ -77,13 +76,8 @@ class BotRoutine:
         )
 
         msg = ''
-        try:
-            for id, stand in self.stands.items():
-                print(id)
-                msg += '{}\n\n'.format(str(stand))
-        except Exception as e:
-            print('fuck')
-            print(e)
+        for id, stand in self.stands.items():
+            msg += '{}\n\n'.format(str(stand))
         bot.send_message(parse_mode=ParseMode.MARKDOWN, chat_id=update.message.chat_id, text=msg)
 
     def alias_test(self, bot, update, args):
@@ -127,7 +121,7 @@ if __name__ == '__main__':
         stand.set_queue(QueueFactory.get_one())
         stands[stand.alias] = stand
 
-    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
-    #bot = BotRoutine(stands)
+    #bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    bot = BotRoutine(stands)
     bot.start()
 

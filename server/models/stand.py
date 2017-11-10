@@ -1,4 +1,3 @@
-import uuid
 from enum import IntEnum
 
 from server.models.queue import Queue
@@ -12,7 +11,7 @@ class State:
         BUSY   = 1,
         ACTIVE = 2,
 
-    def __init__(self, stand: Stand):
+    def __init__(self, stand):
         self.agent = AgentData(stand.ip)
 
     @property
@@ -85,12 +84,12 @@ class Stand:
                                str(self.queue), test_in_progress_str, state.ssh_clients)
 
     def __str__(self):
-        data = self.collect_info()
-        if data['state'] == State.FREE:
+        state = self.state
+        if state.status == State.Status.FREE:
             return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
-        elif data['state'] == State.BUSY:
+        elif state.status == State.Status.BUSY:
             return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, '@user', self.platforms)
-        elif data['state'] == State.ACTIVE:
+        elif state.status == State.Status.ACTIVE:
             return '{} *{}* /{} \n `{}`'.format(WARNING_SMILE_UTF8, self.ip, self.alias, self.platforms)
 
     @property
