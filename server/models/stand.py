@@ -1,9 +1,6 @@
 import socket
-from enum import IntEnum
-
 import requests
-import urllib3
-from urllib3.exceptions import NewConnectionError
+from enum import IntEnum
 
 from server.models.queue import Queue
 from server.agent_gw import AgentData
@@ -57,6 +54,7 @@ class Stand:
             return '{} *{}* at {},  last activity unknown\n' \
                    'Queue:\n' \
                    '{}\n\n'.format(SLEEP_SMILE_UTF8, self.ip, self.user, str(self.queue))
+
         elif state.status == State.Status.FREE:
             return '{} *{}* at {},  last activity {}\n' \
                    'Queue:\n' \
@@ -64,6 +62,7 @@ class Stand:
                    'SSH sessions:\n' \
                    '{}'.format(AVAIL_SMILE_UTF8, self.ip, self.user, state.last_activity,
                                str(self.queue), state.ssh_clients)
+
         elif state.status == State.Status.BUSY:
             if state.tests['is_running']:
                 test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \

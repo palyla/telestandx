@@ -13,7 +13,7 @@ def state():
     state = {
         'status': State.Status.FREE,
         'last_activity': '14:13',
-        'ssh_clients': 'ssh_clients',
+        'ssh_clients': 'ssh clients',
         'tests': {'is_running': True, 'start_time': '12:45', 'scenario': 'modbus.xml'}
     }
 

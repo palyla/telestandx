@@ -9,6 +9,7 @@ from telegram import ParseMode
 from server.factory import StandFactory, QueueFactory
 from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8, \
     SLEEP_SMILE_UTF8
+from server.utils.helper import print_exceptions
 
 LIST_OF_ADMINS = ()
 
@@ -50,10 +51,12 @@ class BotRoutine:
     def start(self):
         self.updater.start_polling()
 
+    @print_exceptions
     def one_stand_cmd(self, bot, update, args):
         if not args:
             alias = update.message['text'][1:]
             stand = self.stands[alias]
+            print(repr(stand))
             bot.send_message(
                 parse_mode=ParseMode.MARKDOWN,
                 chat_id=update.message.chat_id,
@@ -65,6 +68,7 @@ class BotRoutine:
             stand.new_user(update.effective_user['username'])
 
     #@restricted
+    @print_exceptions
     def stands_cmd(self, bot, update):
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
@@ -79,6 +83,7 @@ class BotRoutine:
         msg = ''
         for id, stand in self.stands.items():
             msg += '{}\n\n'.format(str(stand))
+
         bot.send_message(parse_mode=ParseMode.MARKDOWN, chat_id=update.message.chat_id, text=msg)
 
     def alias_test(self, bot, update, args):
