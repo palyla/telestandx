@@ -19,10 +19,6 @@ class State:
         self.agent = AgentData(stand.ip)
 
     @property
-    def status(self):
-        return self.agent.status
-
-    @property
     def last_activity(self):
         return self.agent.last_activity
 
@@ -44,6 +40,7 @@ class Stand:
         self.platforms     = platforms
         self.alias         = alias
         self.user          = None
+        self.status        = State.Status.FREE
         if queue:
             self.queue = queue
 
@@ -55,7 +52,7 @@ class Stand:
                    'Queue:\n' \
                    '{}\n\n'.format(SLEEP_SMILE_UTF8, self.ip, self.user, str(self.queue))
 
-        elif state.status == State.Status.FREE:
+        elif self.status == State.Status.FREE:
             return '{} *{}* at {},  last activity {}\n' \
                    'Queue:\n' \
                    '{}\n\n' \
@@ -63,7 +60,7 @@ class Stand:
                    '{}'.format(AVAIL_SMILE_UTF8, self.ip, self.user, state.last_activity,
                                str(self.queue), state.ssh_clients)
 
-        elif state.status == State.Status.BUSY:
+        elif self.status == State.Status.BUSY:
             if state.tests['is_running']:
                 test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
                                        '`Started at {1}\n' \
@@ -78,7 +75,7 @@ class Stand:
                    'SSH sessions:\n' \
                    '{}'.format(CROSS_SMILE_UTF8, self.ip, self.user, state.last_activity,
                                str(self.queue), test_in_progress_str, state.ssh_clients)
-        elif state.status == State.Status.ACTIVE:
+        elif self.status == State.Status.ACTIVE:
             if state.tests['is_running']:
                 test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
                                        '`Started at {1}\n' \
@@ -99,11 +96,11 @@ class Stand:
         state = self.state
         if not state:
             return '{} *{}* /{}\n `{}`'.format(SLEEP_SMILE_UTF8, self.ip, self.alias, self.platforms)
-        elif state.status == State.Status.FREE:
+        elif self.status == State.Status.FREE:
             return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
-        elif state.status == State.Status.BUSY:
+        elif self.status == State.Status.BUSY:
             return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, '@user', self.platforms)
-        elif state.status == State.Status.ACTIVE:
+        elif self.status == State.Status.ACTIVE:
             return '{} *{}* /{} \n `{}`'.format(WARNING_SMILE_UTF8, self.ip, self.alias, self.platforms)
 
     @property
