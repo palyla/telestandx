@@ -48,12 +48,12 @@ class Stand:
     def __repr__(self):
         state = self.state
         if not state:
-            return '{} *{}* at {},  last activity unknown\n' \
+            return '{} *{}* at @{},  last activity unknown\n' \
                    'Queue:\n' \
                    '{}\n\n'.format(SLEEP_SMILE_UTF8, self.ip, self.user, str(self.queue))
 
         elif self.status == State.Status.FREE:
-            return '{} *{}* at {},  last activity {}\n' \
+            return '{} *{}* at @{},  last activity {}\n' \
                    'Queue:\n' \
                    '{}\n\n' \
                    'SSH sessions:\n' \
@@ -68,7 +68,7 @@ class Stand:
             else:
                 test_in_progress_str = ''
 
-            return '{} *{}* at {},  last activity {}\n' \
+            return '{} *{}* at @{},  last activity {}\n' \
                    'Queue:\n' \
                    '{}\n\n' \
                    '{}\n\n' \
@@ -83,7 +83,7 @@ class Stand:
             else:
                 test_in_progress_str = ''
 
-            return '{} *{}* at {},  last activity {}\n' \
+            return '{} *{}* at @{},  last activity {}\n' \
                    'Queue:\n' \
                    '{}\n' \
                    '{}\n' \

@@ -53,19 +53,23 @@ class BotRoutine:
 
     @print_exceptions
     def one_stand_cmd(self, bot, update, args):
-        if not args:
-            alias = update.message['text'][1:]
+
+        def print_stand_info(alias):
             stand = self.stands[alias]
-            print(repr(stand))
             bot.send_message(
                 parse_mode=ParseMode.MARKDOWN,
                 chat_id=update.message.chat_id,
                 text=repr(stand)
             )
+
+        if not args:
+            alias = update.message['text'][1:]
+            print_stand_info(alias)
         elif 'take' in args[0]:
             alias = update.message['text'][1:].split()[0]
             stand = self.stands[alias]
             stand.new_user(update.effective_user['username'])
+            print_stand_info(alias)
 
     #@restricted
     @print_exceptions
