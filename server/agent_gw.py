@@ -2,6 +2,7 @@ import json
 
 import requests
 
+
 class AgentData:
     def __init__(self, ip):
         # TODO connection to stand, getting a params, setting it as attributes
@@ -12,7 +13,6 @@ class AgentData:
         # {'is_running': '', 'start_time': '', 'scenario': ''}
         self.tests = data['tests']
         self.ssh_clients = data['ssh_clients']
-        print(self.tests)
 
 class AgentCommand:
     # TODO RPC for extended capabilities

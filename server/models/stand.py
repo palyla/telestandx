@@ -1,8 +1,13 @@
 import socket
 from enum import IntEnum
 
+import requests
+import urllib3
+from urllib3.exceptions import NewConnectionError
+
 from server.models.queue import Queue
 from server.agent_gw import AgentData
+from server.utils.helper import print_exceptions
 from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8, \
     SLEEP_SMILE_UTF8
 
@@ -45,13 +50,13 @@ class Stand:
         if queue:
             self.queue = queue
 
+    @print_exceptions
     def __repr__(self):
         state = self.state
         if not state:
             return '{} *{}* at {},  last activity unknown\n' \
                    'Queue:\n' \
                    '{}\n\n'.format(SLEEP_SMILE_UTF8, self.ip, self.user, str(self.queue))
-
         elif state.status == State.Status.FREE:
             return '{} *{}* at {},  last activity {}\n' \
                    'Queue:\n' \
@@ -90,6 +95,7 @@ class Stand:
                    '{}'.format(WARNING_SMILE_UTF8, self.ip, self.user, state.last_activity,
                                str(self.queue), test_in_progress_str, state.ssh_clients)
 
+    @print_exceptions
     def __str__(self):
         state = self.state
         if not state:
@@ -112,7 +118,8 @@ class Stand:
             return State(self)
         except socket.herror:
             return None
-
+        except requests.exceptions.ConnectionError as e:
+            return None
 
     def set_queue(self, queue):
         self.queue = queue
