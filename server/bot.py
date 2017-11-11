@@ -100,12 +100,7 @@ class BotRoutine:
                 /take 1,2,3,4,5,6,7,8,9 - Take multiply stands
                 /giveup   - Free all queue's
         '''
-        # bot.send_message(
-        #     parse_mode=ParseMode.MARKDOWN,
-        #     chat_id=update.message.chat_id,
-        #     text='{0} *192.168.38.201 [alias /1]*\n`cl_all`\n\n'
-        #         .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8)
-        # )
+
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
             chat_id=update.message.chat_id,
