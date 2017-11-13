@@ -10,7 +10,7 @@ class QueueFactory:
 
     @staticmethod
     def get_one():
-        return Queue(maxsize=10)
+        return Queue()
 
 
 class StandFactory:

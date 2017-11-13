@@ -65,10 +65,17 @@ class BotRoutine:
         if not args:
             alias = update.message['text'][1:]
             print_stand_info(alias)
+
         elif 'take' in args[0]:
             alias = update.message['text'][1:].split()[0]
             stand = self.stands[alias]
             stand.new_user(update.effective_user['username'])
+            print_stand_info(alias)
+
+        elif 'return' in args[0]:
+            alias = update.message['text'][1:].split()[0]
+            stand = self.stands[alias]
+            stand.del_user(update.effective_user['username'])
             print_stand_info(alias)
 
     #@restricted
