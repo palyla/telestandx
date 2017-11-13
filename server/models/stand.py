@@ -121,17 +121,20 @@ class Stand:
         self.queue = queue
 
     def new_user(self, user):
-        if not self.queue.is_empty() and user not in self.queue:
+        if not self.queue.empty() and user not in self.queue:
             self.queue.put(user)
         if user in self.queue:
             pass
         else:
+            self.status = State.Status.BUSY
             self.user = user
 
     def next_user(self):
-        if not self.queue.is_empty():
+        if not self.queue.empty():
             self.user = self.queue.get()
+            self.status = State.Status.BUSY
         else:
+            self.status = State.Status.FREE
             self.user = None
 
     def del_user(self, user):

@@ -133,7 +133,7 @@ if __name__ == '__main__':
         stand.set_queue(QueueFactory.get_one())
         stands[stand.alias] = stand
 
-    #bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
-    bot = BotRoutine(stands)
+    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    #bot = BotRoutine(stands)
     bot.start()
 
