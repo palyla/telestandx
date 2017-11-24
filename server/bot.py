@@ -27,6 +27,19 @@ def restricted(func):
     return wrapped
 
 
+class SSHClientsMessage:
+    def __init__(self, clients_dict):
+        pass
+
+class QueueMessage:
+    def __init__(self, queue_dict):
+        pass
+
+class StateMessage:
+    def __init__(self, state_dict):
+        pass
+
+
 class BotRoutine:
     def __init__(self, stands, proxy_url=None):
         self.stands = stands
