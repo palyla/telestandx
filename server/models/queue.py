@@ -1,10 +1,15 @@
-from queue import PriorityQueue
-import itertools
+from queue import Queue as StdQueue
 
 
-class Queue(PriorityQueue):
-    def remove(self):
-        # TODO implement by heapq. (self.queue is heapq)
+class Queue(StdQueue):
+    def remove(self, obj):
+        for i in self.queue:
+            print(i)
+
+    def is_empty(self):
+        pass
+
+    def length(self):
         pass
 
     def __iter__(self):
@@ -24,3 +29,16 @@ class Queue(PriorityQueue):
             return msg
         else:
             return 'Empty'
+
+
+if __name__ == '__main__':
+    q = Queue()
+    q.put('Zero')
+    q.put('One')
+    q.put('Two')
+    q.put('Three')
+    q.put('Four')
+    q.put('Five')
+    q.put('Six')
+
+    print(q)
