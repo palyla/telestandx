@@ -10,7 +10,7 @@ def state():
     state = {
         'last_activity': '14:13',
         'ssh_clients': 'ssh clients',
-        'tests': {'is_running': True, 'start_time': '12:45', 'scenario': 'modbus.xml'}
+        'tests': {'is_running': True, 'is_alive': True, 'start_time': '12:45', 'scenario': 'modbus.xml'}
     }
 
     return json.dumps(state)
