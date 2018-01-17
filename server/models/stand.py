@@ -6,8 +6,6 @@ from server.models.message import StandInfoMessage, StandOverviewMessage
 from server.models.queue import Queue
 from server.agent_gw import AgentData
 from server.utils.helper import print_exceptions
-from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8, \
-    SLEEP_SMILE_UTF8
 
 
 class State:
@@ -17,9 +15,10 @@ class State:
         BUSY    = 1,
         ACTIVE  = 2,
 
-    def __init__(self, stand):
+    def __init__(self, stand, unreachable=False):
         self.stand = stand
-        self.agent = AgentData(stand.ip)
+        if not unreachable:
+            self.agent = AgentData(stand.ip)
 
     @property
     def last_activity(self):
@@ -46,12 +45,17 @@ class State:
         return self.stand.queue
 
     @property
-    def queue(self):
+    def status(self):
         return self.stand.status
 
     @property
     def platforms(self):
         return self.stand.platforms
+
+    @property
+    def alias(self):
+        return self.stand.alias
+
 
 class Stand:
     def __init__(self, name, ip, login, password, platforms, alias, queue: Queue=None):
@@ -84,9 +88,11 @@ class Stand:
             socket.gethostbyaddr(self.ip)
             return State(self)
         except socket.herror:
-            return None
+            self.status = State.Status.UNKNOWN
+            return State(self, unreachable=True)
         except requests.exceptions.ConnectionError as e:
-            return None
+            self.status = State.Status.UNKNOWN
+            return State(self, unreachable=True)
 
     def set_queue(self, queue):
         self.queue = queue

@@ -1,4 +1,3 @@
-from server.models.stand import State
 from server.utils.characters import Emoji
 
 
@@ -19,12 +18,11 @@ class StandOverviewMessage:
 
     @property
     def header(self):
+        from server.models.stand import State
         emoji = 'BUG'
 
-        if (not self.state) \
-            or (not self.state.status) \
-            or self.state.status == State.Status.UNKNOWN:
-
+        if self.state.status is None \
+                or self.state.status == State.Status.UNKNOWN:
             emoji = Emoji.UTF8.SLEEP
         elif self.state.status == State.Status.FREE:
             emoji = Emoji.UTF8.CHECK_MARK
@@ -48,14 +46,12 @@ class StandInfoMessage:
 
     @property
     def header(self):
+        from server.models.stand import State
         emoji = 'BUG'
 
-        if (not self.state) \
-            or (not self.state.status) \
-            or self.state.status == State.Status.UNKNOWN:
-
+        if self.state.status is None \
+                or self.state.status == State.Status.UNKNOWN:
             return '{} *{}* at @{},  last activity unknown\n'.format(Emoji.UTF8.SLEEP, self.state.ip, self.state.user)
-
         elif self.state.status == State.Status.FREE:
             emoji = Emoji.UTF8.CHECK_MARK
         elif self.state.status == State.Status.BUSY:
@@ -67,7 +63,7 @@ class StandInfoMessage:
 
     @property
     def queue(self):
-        return 'Queue: empty'
+        return 'Queue: empty\n'
 
     @property
     def test_progress(self):
@@ -90,7 +86,11 @@ class StandInfoMessage:
         return 'SSH sessions:\n {}'.format(self.state.ssh_clients)
 
     def message(self):
-        return '{}{}{}{}'.format(self.header,
+        return '{}{}\n{}\n{}'.format(self.header,
                                  self.queue,
                                  self.test_progress,
                                  self.ssh_clients)
+
+
+class MessageDataCorrupted(Exception):
+    ''' Raises then data corrupted or not exists '''
