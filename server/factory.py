@@ -4,9 +4,6 @@ from server.models.queue import Queue
 
 
 class QueueFactory:
-    #@staticmethod
-    # def get_one():
-    #     return Queue()
 
     @staticmethod
     def get_one():

@@ -2,6 +2,7 @@ import socket
 import requests
 from enum import IntEnum
 
+from server.models.message import StandInfoMessage, StandOverviewMessage
 from server.models.queue import Queue
 from server.agent_gw import AgentData
 from server.utils.helper import print_exceptions
@@ -11,11 +12,13 @@ from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_
 
 class State:
     class Status(IntEnum):
-        FREE   = 0,
-        BUSY   = 1,
-        ACTIVE = 2,
+        UNKNOWN = -1
+        FREE    = 0,
+        BUSY    = 1,
+        ACTIVE  = 2,
 
     def __init__(self, stand):
+        self.stand = stand
         self.agent = AgentData(stand.ip)
 
     @property
@@ -30,6 +33,25 @@ class State:
     def ssh_clients(self):
         return self.agent.ssh_clients
 
+    @property
+    def user(self):
+        return self.stand.user
+
+    @property
+    def ip(self):
+        return self.stand.ip
+
+    @property
+    def queue(self):
+        return self.stand.queue
+
+    @property
+    def queue(self):
+        return self.stand.status
+
+    @property
+    def platforms(self):
+        return self.stand.platforms
 
 class Stand:
     def __init__(self, name, ip, login, password, platforms, alias, queue: Queue=None):
@@ -46,62 +68,11 @@ class Stand:
 
     @print_exceptions
     def __repr__(self):
-        state = self.state
-        if not state:
-            return '{} *{}* at @{},  last activity unknown\n' \
-                   'Queue:\n' \
-                   '{}\n\n'.format(SLEEP_SMILE_UTF8, self.ip, self.user, str(self.queue))
-
-        elif self.status == State.Status.FREE:
-            return '{} *{}* at @{},  last activity {}\n' \
-                   'Queue:\n' \
-                   '{}\n\n' \
-                   'SSH sessions:\n' \
-                   '{}'.format(AVAIL_SMILE_UTF8, self.ip, self.user, state.last_activity,
-                               str(self.queue), state.ssh_clients)
-
-        elif self.status == State.Status.BUSY:
-            if state.tests['is_running']:
-                test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
-                                       '`Started at {1}\n' \
-                                       'Current scenario {2}`'.format(GEAR_SMILE_UTF8, state.tests['start_time'], state.tests['scenario'])
-            else:
-                test_in_progress_str = ''
-
-            return '{} *{}* at @{},  last activity {}\n' \
-                   'Queue:\n' \
-                   '{}\n\n' \
-                   '{}\n\n' \
-                   'SSH sessions:\n' \
-                   '{}'.format(CROSS_SMILE_UTF8, self.ip, self.user, state.last_activity,
-                               str(self.queue), test_in_progress_str, state.ssh_clients)
-        elif self.status == State.Status.ACTIVE:
-            if state.tests['is_running']:
-                test_in_progress_str = '{0} TEST IN PROGRESS {0}\n' \
-                                       '`Started at {1}\n' \
-                                       'Current scenario {2}`\n'.format(GEAR_SMILE_UTF8, state.tests['start_time'], state.tests['scenario'])
-            else:
-                test_in_progress_str = ''
-
-            return '{} *{}* at @{},  last activity {}\n' \
-                   'Queue:\n' \
-                   '{}\n' \
-                   '{}\n' \
-                   'SSH sessions:\n' \
-                   '{}'.format(WARNING_SMILE_UTF8, self.ip, self.user, state.last_activity,
-                               str(self.queue), test_in_progress_str, state.ssh_clients)
+        return StandInfoMessage(self.state).message()
 
     @print_exceptions
     def __str__(self):
-        state = self.state
-        if not state:
-            return '{} *{}* /{}\n `{}`'.format(SLEEP_SMILE_UTF8, self.ip, self.alias, self.platforms)
-        elif self.status == State.Status.FREE:
-            return '{} *{}* /{}\n `{}`'.format(AVAIL_SMILE_UTF8, self.ip, self.alias, self.platforms)
-        elif self.status == State.Status.BUSY:
-            return '{} *{}* /{} {} \n `{}`'.format(CROSS_SMILE_UTF8, self.ip, self.alias, '@user', self.platforms)
-        elif self.status == State.Status.ACTIVE:
-            return '{} *{}* /{} \n `{}`'.format(WARNING_SMILE_UTF8, self.ip, self.alias, self.platforms)
+        return StandOverviewMessage(self.state).message()
 
     @property
     def state(self):
@@ -120,18 +91,20 @@ class Stand:
     def set_queue(self, queue):
         self.queue = queue
 
+    @print_exceptions
     def new_user(self, user):
         if not self.queue.empty() and user not in self.queue:
-            self.queue.put(user)
+            self.queue._put(user)
         if user in self.queue:
             pass
         else:
             self.status = State.Status.BUSY
             self.user = user
 
+    @print_exceptions
     def next_user(self):
         if not self.queue.empty():
-            self.user = self.queue.get()
+            self.user = self.queue._get()
             self.status = State.Status.BUSY
         else:
             self.status = State.Status.FREE

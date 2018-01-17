@@ -1,15 +1,16 @@
 # 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
 from functools import wraps
 
+import logging
 import requests
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram import ParseMode
 
 from server.factory import StandFactory, QueueFactory
-from server.utils.characters import AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8, \
-    SLEEP_SMILE_UTF8
+from server.utils.characters import Emoji
 from server.utils.helper import print_exceptions
+
 
 LIST_OF_ADMINS = ()
 
@@ -101,7 +102,7 @@ class BotRoutine:
                  '{2} - Занят \n'
                  '{1} - Есть активность за последние 15 минут \n'
                  '{3} - Недоступен в сети \n`'
-                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, SLEEP_SMILE_UTF8)
+                .format(Emoji.UTF8.CHECK_MARK, Emoji.UTF8.WARNING, Emoji.UTF8.CROSS, Emoji.UTF8.SLEEP)
         )
 
         msg = ''
@@ -135,12 +136,14 @@ class BotRoutine:
                  'SSH sessions:\n'
                  '`autotest pts/5 16:33 (10.0.112.36)\n'
                  'autotest pts/2 13:42 (192.168.38.6)`'
-                .format(AVAIL_SMILE_UTF8, WARNING_SMILE_UTF8, CROSS_SMILE_UTF8, GEAR_SMILE_UTF8)
+                .format(Emoji.UTF8.CHECK_MARK, Emoji.UTF8.WARNING, Emoji.UTF8.CROSS, Emoji.UTF8.GEAR)
         )
         print(args)
 
 
 if __name__ == '__main__':
+    # https://stackoverflow.com/questions/25823905/how-to-iterate-over-a-priority-queue-in-python
+
     stands = {}
     for stand in StandFactory.get():
         stand.set_queue(QueueFactory.get_one())
