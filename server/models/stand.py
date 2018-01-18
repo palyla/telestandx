@@ -19,18 +19,9 @@ class State:
         self.stand = stand
         if not unreachable:
             self.agent = AgentData(stand.ip)
-
-    @property
-    def last_activity(self):
-        return self.agent.last_activity
-
-    @property
-    def tests(self):
-        return self.agent.tests
-
-    @property
-    def ssh_clients(self):
-        return self.agent.ssh_clients
+            self.last_activity = self.agent.last_activity
+            self.tests = self.agent.tests
+            self.ssh_clients = self.agent.ssh_clients
 
     @property
     def user(self):

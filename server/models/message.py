@@ -68,7 +68,7 @@ class StandInfoMessage:
     @property
     def test_progress(self):
 
-        if self.state.tests['is_running']:
+        if hasattr(self.state, 'tests') and self.state.tests['is_running']:
             msg = '{0} TEST IN PROGRESS {0}\n' \
             '`Started at {1}\n' \
             'Current scenario {2}`\n'.format(Emoji.UTF8.GEAR, self.state.tests['start_time'], self.state.tests['scenario'])
@@ -83,10 +83,13 @@ class StandInfoMessage:
 
     @property
     def ssh_clients(self):
-        return 'SSH sessions:\n {}'.format(self.state.ssh_clients)
+        if hasattr(self.state, 'ssh_clients'):
+            return 'SSH sessions:\n {}'.format(self.state.ssh_clients)
+        else:
+            return 'SSH sessions: unknown'
 
     def message(self):
-        return '{}{}\n{}\n{}'.format(self.header,
+        return '{}{}\n{}{}'.format(self.header,
                                  self.queue,
                                  self.test_progress,
                                  self.ssh_clients)
