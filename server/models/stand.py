@@ -3,7 +3,7 @@ import requests
 from enum import IntEnum
 
 from server.models.message import StandInfoMessage, StandOverviewMessage
-from server.models.queue import Queue
+from server.models.users_queue import Queue
 from server.agent_gw import AgentData
 from server.utils.helper import print_exceptions
 
@@ -56,10 +56,11 @@ class Stand:
         self.password      = password
         self.platforms     = platforms
         self.alias         = alias
-        self.user          = None
         self.status        = State.Status.FREE
         if queue:
             self.queue = queue
+        else:
+            self.queue = Queue()
 
     @print_exceptions
     def __repr__(self):
@@ -90,25 +91,31 @@ class Stand:
 
     @print_exceptions
     def new_user(self, user):
-        if not self.queue.empty() and user not in self.queue:
-            self.queue._put(user)
+        if not self.queue.full() \
+                and user not in self.queue.queue:
+
+            self.queue.put(user)
+            self.status = State.Status.BUSY
         if user in self.queue:
             pass
         else:
             self.status = State.Status.BUSY
-            self.user = user
 
     @print_exceptions
     def next_user(self):
-        if not self.queue.empty():
-            self.user = self.queue._get()
+        if not self.queue.empty() and not self.queue.full():
+            self.queue.get()
             self.status = State.Status.BUSY
         else:
             self.status = State.Status.FREE
-            self.user = None
 
-    def del_user(self, user):
-        pass
+    def del_user(self, user_id):
+        self.queue.remove(user_id)
 
-    def current_user(self):
-        return self.user
+    @property
+    def user(self):
+        return None
+
+    @user.getter
+    def user(self):
+        return self.queue.head()

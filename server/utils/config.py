@@ -19,7 +19,7 @@ class Config:
         self.conf['sys'] = {'script_dir' : self_dir}
 
         if conf_path:
-            self.conf.read(conf_path)
+            self.conf.read(conf_path, encoding='utf8')
 
     def __getitem__(self, item):
         return self.conf[item]

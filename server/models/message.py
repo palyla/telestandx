@@ -63,7 +63,7 @@ class StandInfoMessage:
 
     @property
     def queue(self):
-        return 'Queue: empty\n'
+        return '{}'.format(self.state.queue)
 
     @property
     def test_progress(self):

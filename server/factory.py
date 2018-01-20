@@ -1,6 +1,6 @@
 from server.utils.config import Config
 from server.models.stand import Stand
-from server.models.queue import Queue
+from server.models.users_queue import Queue
 
 
 class QueueFactory:

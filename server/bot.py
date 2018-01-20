@@ -1,4 +1,5 @@
 # 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
+import re
 from functools import wraps
 
 import logging
@@ -28,19 +29,6 @@ def restricted(func):
     return wrapped
 
 
-class SSHClientsMessage:
-    def __init__(self, clients_dict):
-        pass
-
-class QueueMessage:
-    def __init__(self, queue_dict):
-        pass
-
-class StateMessage:
-    def __init__(self, state_dict):
-        pass
-
-
 class BotRoutine:
     def __init__(self, stands, proxy_url=None):
         self.stands = stands
@@ -65,15 +53,31 @@ class BotRoutine:
     def start(self):
         self.updater.start_polling()
 
+    def get_stand_by_alias(self, alias):
+        try:
+            return self.stands[alias]
+        except KeyError:
+            return self.stands[alias.replace('@telestandx_bot', '')]
+
     @print_exceptions
     def one_stand_cmd(self, bot, update, args):
-
+        ''' {'id': 152149972, 'first_name': 'Alexey', 'is_bot': False, 'last_name': 'Sedlyarsky', 'username': 'palyla',
+         'language_code': 'en-US'} '''
         def print_stand_info(alias):
-            stand = self.stands[alias]
+            stand = self.get_stand_by_alias(alias)
+            chat_id = update.message.chat.id
+
+            count = 0
+            msg = repr(stand)
+            for id in stand.queue:
+                count += 1
+                username = '{}'.format(bot.get_chat_member(chat_id, id).user.first_name)
+                msg = msg.replace(str(id), username)
+
             bot.send_message(
                 parse_mode=ParseMode.MARKDOWN,
                 chat_id=update.message.chat_id,
-                text=repr(stand)
+                text=msg
             )
 
         if not args:
@@ -82,14 +86,14 @@ class BotRoutine:
 
         elif 'take' in args[0]:
             alias = update.message['text'][1:].split()[0]
-            stand = self.stands[alias]
-            stand.new_user(update.effective_user['username'])
+            stand = self.get_stand_by_alias(alias)
+            stand.new_user(update.effective_user['id'])
             print_stand_info(alias)
 
-        elif 'return' in args[0]:
+        elif 'free' in args[0]:
             alias = update.message['text'][1:].split()[0]
-            stand = self.stands[alias]
-            stand.del_user(update.effective_user['username'])
+            stand = self.get_stand_by_alias(alias)
+            stand.del_user(update.effective_user['id'])
             print_stand_info(alias)
 
     #@restricted
@@ -149,7 +153,7 @@ if __name__ == '__main__':
         stand.set_queue(QueueFactory.get_one())
         stands[stand.alias] = stand
 
-    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
-    # bot = BotRoutine(stands)
+    # bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    bot = BotRoutine(stands)
     bot.start()
 
