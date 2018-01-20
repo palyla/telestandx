@@ -109,8 +109,15 @@ class Stand:
         else:
             self.status = State.Status.FREE
 
+        self._check_users()
+
     def del_user(self, user_id):
         self.queue.remove(user_id)
+        self._check_users()
+
+    def _check_users(self):
+        if self.queue.empty():
+            self.status = State.Status.FREE
 
     @property
     def user(self):
