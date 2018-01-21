@@ -1,7 +1,9 @@
 ''' It does NOT support Wayland '''
 import multiprocessing
-from Xlib import display
+import os
 
+from Xlib import display
+from os import subprocess
 
 class ProcessWatcher:
     '''
@@ -10,10 +12,35 @@ class ProcessWatcher:
         sudo ./execsnoop
     '''
     def __init__(self):
-        pass
+        self.events = list()
+        self.proc = None
+        self.stop = False
 
-    def add_event(self, func):
-        pass
+        def install_watcher(path):
+            if not os.path.exists(path):
+
+                os.mknod(path)
+                os.system('cd {} && git clone https://github.com/brendangregg/perf-tools.git'.format(path))
+
+            return os.path.join(path, 'perf-tools/execsnoop')
+
+        self.elf_path = install_watcher('/opt/telestandx_agent_watcher')
+
+    def add_event(self, handler):
+        self.events.append(handler)
+
+    def routine(self):
+        self.proc = subprocess.Popen(self.elf_path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        while True:
+            if self.stop:
+                break
+            line = self.proc.stdin.readline()
+            for e in self.events:
+                e(line)
+
+    def stop(self):
+        self.stop = True
+
 
 class ActivityWatcher:
 
