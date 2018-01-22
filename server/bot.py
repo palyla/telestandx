@@ -49,6 +49,9 @@ class BotRoutine:
         self.handler = CommandHandler('giveup', self.giveup_cmd)
         self.updater.dispatcher.add_handler(self.handler)
 
+        self.handler = CommandHandler('my', self.my_cmd)
+        self.updater.dispatcher.add_handler(self.handler)
+
         # self.handler = CommandHandler('test', self.alias_test, pass_args=True)
         # self.updater.dispatcher.add_handler(self.handler)
 
@@ -159,6 +162,24 @@ class BotRoutine:
                 )
             except:
                 print('Fuck NO!!!')
+
+    @print_exceptions
+    def my_cmd(self, bot, update):
+        for alias, stand in self.stands.items():
+            if update.effective_user['id'] in stand.queue.queue:
+                chat_id = update.message.chat.id
+                count = 0
+                msg = StandShortInfoMessage(stand).message()
+                for id in stand.queue:
+                    count += 1
+                    username = '{}'.format(bot.get_chat_member(chat_id, id).user.first_name)
+                    msg = msg.replace(str(id), username)
+
+                bot.send_message(
+                    parse_mode=ParseMode.MARKDOWN,
+                    chat_id=update.message.chat_id,
+                    text=msg
+                )
 
     def alias_test(self, bot, update, args):
         '''
