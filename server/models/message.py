@@ -89,10 +89,44 @@ class StandInfoMessage:
             return 'SSH sessions: unknown'
 
     def message(self):
-        return '{}{}\n{}{}'.format(self.header,
+        # return '{}{}{}{}'.format(self.header,
+        #                          self.queue,
+        #                          self.test_progress,
+        #                          self.ssh_clients)
+        return '{}{}{}'.format(self.header,
                                  self.queue,
-                                 self.test_progress,
-                                 self.ssh_clients)
+                                 self.test_progress)
+
+class StandShortInfoMessage:
+    def __init__(self, state):
+        self.state = state
+
+    def __str__(self):
+        return self.message()
+
+    @property
+    def header(self):
+        from server.models.stand import State
+        emoji = 'BUG'
+
+        if self.state.status is None \
+                or self.state.status == State.Status.UNKNOWN:
+            return '{} *{}* at @{},  last activity unknown\n'.format(Emoji.UTF8.SLEEP, self.state.ip, self.state.user)
+        elif self.state.status == State.Status.FREE:
+            emoji = Emoji.UTF8.CHECK_MARK
+        elif self.state.status == State.Status.BUSY:
+            emoji = Emoji.UTF8.CROSS
+        elif self.state.status == State.Status.ACTIVE:
+            emoji = Emoji.UTF8.WARNING
+
+        return '{} *{}* at @{},  last activity {}\n'.format(emoji, self.state.ip, self.state.user, 'unknown')
+
+    @property
+    def queue(self):
+        return '{}'.format(self.state.queue)
+
+    def message(self):
+        return '{}{}'.format(self.header, self.queue)
 
 
 class MessageDataCorrupted(Exception):

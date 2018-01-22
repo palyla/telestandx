@@ -1,14 +1,11 @@
 # 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
-import re
 from functools import wraps
-
-import logging
-import requests
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram import ParseMode
 
 from server.factory import StandFactory, QueueFactory
+from server.models.message import StandShortInfoMessage
 from server.utils.characters import Emoji
 from server.utils.helper import print_exceptions
 
@@ -43,6 +40,15 @@ class BotRoutine:
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
 
+        self.handler = CommandHandler('take', self.take_cmd, pass_args=True)
+        self.updater.dispatcher.add_handler(self.handler)
+
+        self.handler = CommandHandler('free', self.free_cmd, pass_args=True)
+        self.updater.dispatcher.add_handler(self.handler)
+
+        self.handler = CommandHandler('giveup', self.giveup_cmd)
+        self.updater.dispatcher.add_handler(self.handler)
+
         # self.handler = CommandHandler('test', self.alias_test, pass_args=True)
         # self.updater.dispatcher.add_handler(self.handler)
 
@@ -59,42 +65,43 @@ class BotRoutine:
         except KeyError:
             return self.stands[alias.replace('@telestandx_bot', '')]
 
+    def print_stand_info(self, bot, update, alias):
+        stand = self.get_stand_by_alias(alias)
+        chat_id = update.message.chat.id
+
+        count = 0
+        msg = repr(stand)
+        for id in stand.queue:
+            count += 1
+            username = '{}'.format(bot.get_chat_member(chat_id, id).user.first_name)
+            msg = msg.replace(str(id), username)
+
+        bot.send_message(
+            parse_mode=ParseMode.MARKDOWN,
+            chat_id=update.message.chat_id,
+            text=msg
+        )
+
     @print_exceptions
     def one_stand_cmd(self, bot, update, args):
         ''' {'id': 152149972, 'first_name': 'Alexey', 'is_bot': False, 'last_name': 'Sedlyarsky', 'username': 'palyla',
          'language_code': 'en-US'} '''
-        def print_stand_info(alias):
-            stand = self.get_stand_by_alias(alias)
-            chat_id = update.message.chat.id
-
-            count = 0
-            msg = repr(stand)
-            for id in stand.queue:
-                count += 1
-                username = '{}'.format(bot.get_chat_member(chat_id, id).user.first_name)
-                msg = msg.replace(str(id), username)
-
-            bot.send_message(
-                parse_mode=ParseMode.MARKDOWN,
-                chat_id=update.message.chat_id,
-                text=msg
-            )
 
         if not args:
             alias = update.message['text'][1:]
-            print_stand_info(alias)
+            self.print_stand_info(bot, update, alias)
 
         elif 'take' in args[0]:
             alias = update.message['text'][1:].split()[0]
             stand = self.get_stand_by_alias(alias)
             stand.new_user(update.effective_user['id'])
-            print_stand_info(alias)
+            self.print_stand_info(bot, update, alias)
 
         elif 'free' in args[0]:
             alias = update.message['text'][1:].split()[0]
             stand = self.get_stand_by_alias(alias)
             stand.del_user(update.effective_user['id'])
-            print_stand_info(alias)
+            self.print_stand_info(bot, update, alias)
 
     #@restricted
     @print_exceptions
@@ -114,6 +121,44 @@ class BotRoutine:
             msg += '{}\n\n'.format(str(stand))
 
         bot.send_message(parse_mode=ParseMode.MARKDOWN, chat_id=update.message.chat_id, text=msg)
+
+    @print_exceptions
+    def take_cmd(self, bot, update, args):
+        aliases = update.message['text'][1:].split()[1:]
+        for alias in aliases:
+            stand = self.get_stand_by_alias(alias)
+            stand.new_user(update.effective_user['id'])
+            self.print_stand_info(bot, update, alias)
+
+    @print_exceptions
+    def free_cmd(self, bot, update, args):
+        aliases = update.message['text'][1:].split()[1:]
+        for alias in aliases:
+            stand = self.get_stand_by_alias(alias)
+            stand.del_user(update.effective_user['id'])
+            self.print_stand_info(bot, update, alias)
+
+    @print_exceptions
+    def giveup_cmd(self, bot, update):
+        for alias, stand in self.stands.items():
+            try:
+                stand.del_user(update.effective_user['id'])
+                chat_id = update.message.chat.id
+
+                count = 0
+                msg = StandShortInfoMessage(stand).message()
+                for id in stand.queue:
+                    count += 1
+                    username = '{}'.format(bot.get_chat_member(chat_id, id).user.first_name)
+                    msg = msg.replace(str(id), username)
+
+                bot.send_message(
+                    parse_mode=ParseMode.MARKDOWN,
+                    chat_id=update.message.chat_id,
+                    text=msg
+                )
+            except:
+                print('Fuck NO!!!')
 
     def alias_test(self, bot, update, args):
         '''
@@ -153,7 +198,7 @@ if __name__ == '__main__':
         stand.set_queue(QueueFactory.get_one())
         stands[stand.alias] = stand
 
-    # bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
-    bot = BotRoutine(stands)
+    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    # bot = BotRoutine(stands)
     bot.start()
 

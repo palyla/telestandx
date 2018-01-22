@@ -4,11 +4,16 @@ from collections import deque
 
 class Queue(queue.Queue):
     def remove(self, obj):
+        is_removed = False
         new_queue = deque()
         for i in self.queue:
             if i != obj:
                 new_queue.append(i)
+                continue
+            is_removed = True
         self.queue = new_queue
+        if not is_removed:
+            raise FileNotFoundError('User not in queue')
 
     def head(self):
         if not self.empty():
