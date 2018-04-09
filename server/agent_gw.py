@@ -35,3 +35,7 @@ class AgentData:
 class AgentCommand:
     # TODO RPC for extended capabilities
     pass
+
+if __name__ == '__main__':
+    d = AgentData('127.0.0.1')
+    print(dir(d))
