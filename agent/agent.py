@@ -108,6 +108,7 @@ def state():
     if not StaticVars.extended_info \
             or 'upd_proc' not in StaticVars.extended_info \
             or 'upd_users' not in StaticVars.extended_info:
+        print(StaticVars.extended_info)
         return "{}"
 
     if 'java' in StaticVars.extended_info['upd_proc'] and 'hwTester.jar' in StaticVars.extended_info['upd_proc']['java']['cmdline'][2]:
@@ -122,6 +123,7 @@ def state():
         'tests': tests
     }
 
+    print(json.dumps(state))
     return json.dumps(state)
 
 
@@ -142,11 +144,13 @@ class ActivityWatcher:
     def routine(self):
         while True:
             time.sleep(0.2)
-            StaticVars.extended_info = dict()
+            tmp = dict()
             for event in self.events:
                 res = event()
                 if res:
-                    StaticVars.extended_info[event.__name__] = res
+                    tmp[event.__name__] = res
+
+            StaticVars.extended_info = tmp
 
 
 if __name__ == "__main__":
@@ -184,8 +188,8 @@ if __name__ == "__main__":
     def upd_users():
         users = dict()
         for usr in psutil.users():
-            users[usr[4]] = {'name': usr[0], 'terminal': usr[1], 'host': usr[2], 'started': usr[3]}
-
+            if 'localhost' not in usr[2]:
+                users[usr[1]] = usr[2]
         return users
 
     run = lambda: app.run(debug=True, use_reloader=False)
