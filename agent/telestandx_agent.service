@@ -3,11 +3,14 @@ Description=This provides a monitoring of this stand by general bot.
 After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
-Type=telestandx_agent
+Type=simple
 WorkingDirectory=/opt/telestandx
-ExecStart=python3 agent/agent.py
+ExecStart=/usr/bin/python3 /opt/telestandx/agent/agent.py
 Restart=on-failure
-LimitNOFILE=10000
+User=autotest
+Group=autotest
+TimeoutSec=2
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
