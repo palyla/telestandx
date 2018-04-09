@@ -106,20 +106,31 @@ app = Flask(__name__)
 @app.route('/state')
 def state():
     if not StaticVars.extended_info \
-            or 'upd_proc' not in StaticVars.extended_info \
-            or 'upd_users' not in StaticVars.extended_info:
-        print(StaticVars.extended_info)
+            and 'upd_proc' not in StaticVars.extended_info \
+            and 'upd_users' not in StaticVars.extended_info:
+        # print(StaticVars.extended_info)
         return "{}"
 
-    if 'java' in StaticVars.extended_info['upd_proc'] and 'hwTester.jar' in StaticVars.extended_info['upd_proc']['java']['cmdline'][2]:
-        start_timestamp = datetime.datetime.fromtimestamp(StaticVars.extended_info['upd_proc']['perl']['create_time']).time().strftime('%H:%M')
-        current_scenario = StaticVars.extended_info['upd_proc']['java']['cmdline'][4]
-        tests = {'is_running': True, 'is_alive': True, 'start_time': start_timestamp, 'scenario': os.path.basename(current_scenario)}
+    if 'upd_proc' in StaticVars.extended_info:
+        if 'java' in StaticVars.extended_info['upd_proc'] and 'hwTester.jar' in StaticVars.extended_info['upd_proc']['java']['cmdline'][2]:
+            start_timestamp = datetime.datetime.fromtimestamp(StaticVars.extended_info['upd_proc']['perl']['create_time']).time().strftime('%H:%M')
+            current_scenario = StaticVars.extended_info['upd_proc']['java']['cmdline'][4]
+            tests = {'is_running': True, 'is_alive': True, 'start_time': start_timestamp, 'scenario': os.path.basename(current_scenario)}
+        else:
+            tests = {'is_running': False}
     else:
         tests = {'is_running': False}
+
+    if 'upd_users' in StaticVars.extended_info:
+        ssh_clients = StaticVars.extended_info['upd_users']
+    else:
+        ssh_clients = '{}'
+
+    last_activity = datetime.datetime.fromtimestamp(StaticVars.last_activity).time().strftime('%H:%M')
+
     state = {
-        'last_activity': datetime.datetime.fromtimestamp(StaticVars.last_activity).time().strftime('%H:%M'),
-        'ssh_clients': StaticVars.extended_info['upd_users'],
+        'last_activity': last_activity,
+        'ssh_clients': ssh_clients,
         'tests': tests
     }
 

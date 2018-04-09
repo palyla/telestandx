@@ -43,7 +43,7 @@ class State:
             self.tests = self.agent.tests
             self.ssh_clients = self.agent.ssh_clients
             self.is_connection_success = True
-        except :
+        except Exception as e:
             self.last_activity = 'unknown'
             self.tests = {'is_running': False}
             self.ssh_clients = {}
@@ -102,7 +102,7 @@ class Stand:
 
     @state.getter
     def state(self):
-        st = State(self, connection_timeout_sec=3)
+        st = State(self)
         if not st.is_connection_success:
             self.status = State.Status.UNKNOWN
         return st

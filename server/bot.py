@@ -22,6 +22,8 @@ import threading
 from functools import wraps
 
 import time
+
+import datetime
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram import ParseMode
@@ -247,9 +249,16 @@ if __name__ == '__main__':
         stands[stand.alias] = stand
 
     def stands_monitor():
+        free_stands_time_range = (datetime.time(0, 0, 0), datetime.time(0, 5, 0))
+
         while True:
+            now = datetime.datetime.now().time()
+
             for alias, stand in stands.items():
                 state = stand.state
+                if free_stands_time_range[0] <= now <= free_stands_time_range[1]:
+                    stand.set_queue(QueueFactory.get_one())
+
             time.sleep(3)
 
     thread = threading.Thread(target=stands_monitor, args=())
