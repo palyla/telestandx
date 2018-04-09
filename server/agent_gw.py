@@ -23,10 +23,10 @@ import requests
 
 
 class AgentData:
-    def __init__(self, ip):
+    def __init__(self, ip, timeout_sec=0.1):
         # TODO connection to stand, getting a params, setting it as attributes
-        self.raw_data = requests.get('http://{}:5000/state'.format(ip))
-        print(self.raw_data.content)
+        self.raw_data = requests.get('http://{}:5000/state'.format(ip), timeout=timeout_sec)
+        assert 200 == self.raw_data.status_code
         data = json.loads(self.raw_data.content.decode('utf8'))
 
         self.last_activity = data['last_activity']
@@ -37,8 +37,8 @@ class AgentCommand:
     # TODO RPC for extended capabilities
     pass
 
-if __name__ == '__main__':
-    d = AgentData('127.0.0.1')
-    print(d.last_activity)
-    print(d.tests)
-    print(d.ssh_clients)
+# if __name__ == '__main__':
+#     d = AgentData('127.0.0.1')
+#     print(d.last_activity)
+#     print(d.tests)
+#     print(d.ssh_clients)

@@ -192,7 +192,7 @@ if __name__ == "__main__":
                 users[usr[1]] = usr[2]
         return users
 
-    run = lambda: app.run(debug=True, use_reloader=False)
+    run = lambda: app.run(host='0.0.0.0', debug=True, use_reloader=False)
     thread = threading.Thread(target=run, args=())
     thread.daemon = True
     thread.start()
