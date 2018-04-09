@@ -90,7 +90,7 @@ class StandInfoMessage:
         if hasattr(self.state, 'tests') and self.state.tests['is_running']:
             msg = '{0} TEST IN PROGRESS {0}\n' \
             '`Started at {1}\n' \
-            'Current scenario {2}`\n'.format(Emoji.UTF8.GEAR, self.state.tests['start_time'], self.state.tests['scenario'])
+            'Current scenario: {2}`\n'.format(Emoji.UTF8.GEAR, self.state.tests['start_time'], self.state.tests['scenario'])
 
             if self.state.tests['is_alive']:
                 alert_msg = '{0} TESTS IS DOWN!!! {0}\n'.format(Emoji.UTF8.SCULL)
@@ -102,19 +102,28 @@ class StandInfoMessage:
 
     @property
     def ssh_clients(self):
-        if hasattr(self.state, 'ssh_clients'):
-            return 'SSH sessions:\n {}'.format(self.state.ssh_clients)
-        else:
-            return 'SSH sessions: unknown'
+        msg = 'Logged in: \n'
+        count = 0
+        for tty, host in self.state.ssh_clients.items():
+            count += 1
+            msg += '``` {}. {} {}```\n'.format(count, tty, host)
+
+        if count == 0:
+            return ''
+        # if hasattr(self.state, 'ssh_clients'):
+        #     return 'SSH sessions:\n {}'.format(self.state.ssh_clients)
+        # else:
+        #     return 'SSH sessions: unknown'
+        return msg
 
     def message(self):
-        # return '{}{}{}{}'.format(self.header,
-        #                          self.queue,
-        #                          self.test_progress,
-        #                          self.ssh_clients)
-        return '{}{}{}'.format(self.header,
+        return '{}{}{}{}'.format(self.header,
                                  self.queue,
-                                 self.test_progress)
+                                 self.test_progress,
+                                 self.ssh_clients)
+        # return '{}{}{}'.format(self.header,
+        #                          self.queue,
+        #                          self.test_progress)
 
 class StandShortInfoMessage:
     def __init__(self, state):

@@ -34,13 +34,20 @@ class State:
         BUSY    = 1,
         ACTIVE  = 2,
 
-    def __init__(self, stand, unreachable=False):
+    def __init__(self, stand, connection_timeout_sec=0.1):
         self.stand = stand
-        if not unreachable:
-            self.agent = AgentData(stand.ip)
+
+        try:
+            self.agent = AgentData(stand.ip, timeout_sec=connection_timeout_sec)
             self.last_activity = self.agent.last_activity
             self.tests = self.agent.tests
             self.ssh_clients = self.agent.ssh_clients
+            self.is_connection_success = True
+        except Exception as e:
+            self.last_activity = 'unknown'
+            self.tests = {'is_running': False}
+            self.ssh_clients = {}
+            self.is_connection_success = False
 
     @property
     def user(self):
@@ -95,15 +102,10 @@ class Stand:
 
     @state.getter
     def state(self):
-        try:
-            socket.gethostbyaddr(self.ip)
-            return State(self)
-        except socket.herror:
+        st = State(self)
+        if not st.is_connection_success:
             self.status = State.Status.UNKNOWN
-            return State(self, unreachable=True)
-        except requests.exceptions.ConnectionError as e:
-            self.status = State.Status.UNKNOWN
-            return State(self, unreachable=True)
+        return st
 
     def set_queue(self, queue):
         self.queue = queue

@@ -18,7 +18,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 '''
 
 # 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
+import threading
 from functools import wraps
+
+import time
+
+import datetime
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram import ParseMode
@@ -50,11 +55,15 @@ class BotRoutine:
         self.stands = stands
 
         if proxy_url:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
+            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
+            #   'proxy_url': proxy_url,
+            # })
+            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
               'proxy_url': proxy_url,
             })
         else:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
+            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
+            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo')
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
@@ -85,7 +94,10 @@ class BotRoutine:
         try:
             return self.stands[alias]
         except KeyError:
-            return self.stands[alias.replace('@telestandx_bot', '')]
+            try:
+                return self.stands[alias.replace('@telestandx_bot', '')]
+            except:
+                return self.stands[alias.replace('@telestandx_test_bot', '')]
 
     def print_stand_info(self, bot, update, alias):
         stand = self.get_stand_by_alias(alias)
@@ -180,7 +192,7 @@ class BotRoutine:
                     text=msg
                 )
             except:
-                print('Fuck NO!!!')
+                pass
 
     @print_exceptions
     def my_cmd(self, bot, update):
@@ -231,14 +243,29 @@ class BotRoutine:
 
 
 if __name__ == '__main__':
-    # https://stackoverflow.com/questions/25823905/how-to-iterate-over-a-priority-queue-in-python
-
     stands = {}
     for stand in StandFactory.get():
         stand.set_queue(QueueFactory.get_one())
         stands[stand.alias] = stand
 
-    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
-    # bot = BotRoutine(stands)
+    def stands_monitor():
+        free_stands_time_range = (datetime.time(0, 0, 0), datetime.time(0, 5, 0))
+
+        while True:
+            now = datetime.datetime.now().time()
+
+            for alias, stand in stands.items():
+                state = stand.state
+                if free_stands_time_range[0] <= now <= free_stands_time_range[1]:
+                    stand.set_queue(QueueFactory.get_one())
+
+            time.sleep(3)
+
+    thread = threading.Thread(target=stands_monitor, args=())
+    thread.daemon = True
+    thread.start()
+
+    # bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    bot = BotRoutine(stands)
     bot.start()
 
