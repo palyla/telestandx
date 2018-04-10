@@ -34,7 +34,7 @@ class State:
         BUSY    = 1,
         ACTIVE  = 2,
 
-    def __init__(self, stand, connection_timeout_sec=1):
+    def __init__(self, stand, connection_timeout_sec=1.5):
         self.stand = stand
 
         try:

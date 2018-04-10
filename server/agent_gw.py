@@ -21,7 +21,10 @@ import json
 
 import requests
 
-
+'''
+http://192.168.38.211:9999/
+{"scenario_name":"Base_Ncc_Crg","platform_name":"hw-1000-q6","start_time":"2018-04-10T12:14:03.074","steps_completed":0,"steps_remaining":3,"total_steps":3}
+'''
 class AgentData:
     def __init__(self, ip, timeout_sec=0.1):
         # TODO connection to stand, getting a params, setting it as attributes
