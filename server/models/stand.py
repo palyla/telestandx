@@ -49,6 +49,14 @@ class State:
             self.ssh_clients = {}
             self.is_connection_success = False
 
+        if hasattr(self, 'agent') and hasattr(self.agent, 'scenario_name'):
+            self.scenario_name   = self.agent.scenario_name
+            self.platform_name   = self.agent.platform_name
+            self.start_time      = self.agent.start_time
+            self.steps_completed = self.agent.steps_completed
+            self.steps_remaining = self.agent.steps_remaining
+            self.total_steps     = self.agent.total_steps
+
     @property
     def user(self):
         return self.stand.user

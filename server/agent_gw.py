@@ -36,6 +36,22 @@ class AgentData:
         self.tests = data['tests']
         self.ssh_clients = data['ssh_clients']
 
+        self.hw_tester_info = None
+
+        try:
+            self.hw_tester_info = requests.get('http://{}:9999'.format(ip), timeout=timeout_sec)
+            data = json.loads(self.hw_tester_info.content.decode('utf8'))
+
+            self.scenario_name = data['scenario_name']
+            self.platform_name = data['platform_name']
+            self.start_time = data['start_time']
+            self.steps_completed = data['steps_completed']
+            self.steps_remaining = data['steps_remaining']
+            self.total_steps = data['total_steps']
+        except:
+            pass
+
+
 class AgentCommand:
     # TODO RPC for extended capabilities
     pass

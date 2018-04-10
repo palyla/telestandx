@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 '''
+import datetime
 
 from server.utils.characters import Emoji
 
@@ -26,6 +27,26 @@ class Message:
 
     def __str__(self):
         return self.msg
+
+
+class ProgressBarMessage:
+    def __init__(self, completed, total, completed_symbol='▓', way_symbol='░', length=50, show_percent=False):
+        percent = int((completed * 100) / total)
+        completed_symbols_num = int((length * percent) / 100)
+        way_symbols_num = int(length - completed_symbols_num)
+        self.percent = percent
+
+        if show_percent:
+            self.msg = '{}{} {}%'.format(completed_symbol * completed_symbols_num, way_symbol * way_symbols_num, percent)
+        else:
+            self.msg = '{}{}'.format(completed_symbol * completed_symbols_num, way_symbol * way_symbols_num)
+
+    def message(self):
+        return self.msg
+
+if __name__ == '__main__':
+    msg = ProgressBarMessage(1, 3)
+    print(msg.message())
 
 
 class StandOverviewMessage:
@@ -86,8 +107,19 @@ class StandInfoMessage:
 
     @property
     def test_progress(self):
+        if hasattr(self.state, 'scenario_name') and hasattr(self.state, 'tests') and self.state.tests['is_running']:
+            start_time = datetime.datetime.strptime(self.state.start_time.split('.')[0], '%Y-%m-%dT%H:%M:%S').strftime('%H:%M')
+            progress_length = 35
+            progress = ProgressBarMessage(self.state.steps_completed, self.state.total_steps, length=progress_length, show_percent=True)
 
-        if hasattr(self.state, 'tests') and self.state.tests['is_running']:
+            msg = '{0} TEST IN PROGRESS {0}\n' \
+            '`Started at {4}, platform {1}, scenario {2}, config {3}`\n' \
+            '{5}\n'.format(Emoji.UTF8.GEAR, self.state.platform_name, self.state.scenario_name,
+                           self.state.tests['scenario'], start_time, progress.message())
+
+            return msg
+
+        elif hasattr(self.state, 'tests') and self.state.tests['is_running']:
             msg = '{0} TEST IN PROGRESS {0}\n' \
             '`Started at {1}\n' \
             'Current scenario: {2}`\n'.format(Emoji.UTF8.GEAR, self.state.tests['start_time'], self.state.tests['scenario'])
