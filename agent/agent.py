@@ -130,7 +130,6 @@ def state():
         'tests': tests
     }
 
-    print(json.dumps(state))
     return json.dumps(state)
 
 

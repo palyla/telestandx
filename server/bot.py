@@ -55,15 +55,15 @@ class BotRoutine:
         self.stands = stands
 
         if proxy_url:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
-              'proxy_url': proxy_url,
-            })
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
             #   'proxy_url': proxy_url,
             # })
+            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+              'proxy_url': proxy_url,
+            })
         else:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo')
+            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
+            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo')
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
@@ -140,6 +140,8 @@ class BotRoutine:
     #@restricted
     @print_exceptions
     def stands_cmd(self, bot, update):
+        chat_id = update.message.chat.id
+
         bot.send_message(
             parse_mode=ParseMode.MARKDOWN,
             chat_id=update.message.chat_id,
@@ -152,7 +154,11 @@ class BotRoutine:
 
         msg = ''
         for id, stand in self.stands.items():
-            msg += '{}\n\n'.format(str(stand))
+            one_stand_msg = '{}\n\n'.format(str(stand))
+            if not stand.queue.empty():
+                username = '@{}'.format(bot.get_chat_member(chat_id, stand.user).user.first_name)
+                one_stand_msg = one_stand_msg.replace(str(stand.user), username)
+            msg += one_stand_msg
 
         bot.send_message(parse_mode=ParseMode.MARKDOWN, chat_id=update.message.chat_id, text=msg)
 
