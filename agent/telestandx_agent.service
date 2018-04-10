@@ -4,7 +4,6 @@ After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
 WorkingDirectory=/opt/telestandx
-Environment=PYTHONPATH=/opt/telestandx
 ExecStart=/usr/bin/python3 /opt/telestandx/agent/agent.py
 Restart=on-failure
 User=autotest
