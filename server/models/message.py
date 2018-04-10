@@ -17,6 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 '''
 import datetime
+import re
 
 from server.utils.characters import Emoji
 
@@ -80,6 +81,20 @@ class StandInfoMessage:
     def __str__(self):
         return self.message()
 
+    def is_ipv4(self, ip):
+        match = re.match("^(\d{0,3})\.(\d{0,3})\.(\d{0,3})\.(\d{0,3})$", ip)
+        if not match:
+            return False
+        quad = []
+        for number in match.groups():
+            quad.append(int(number))
+        if quad[0] < 1:
+            return False
+        for number in quad:
+            if number > 255 or number < 0:
+                return False
+        return True
+
     @property
     def header(self):
         from server.models.stand import State
@@ -136,8 +151,9 @@ class StandInfoMessage:
         msg = 'Logged in: \n'
         count = 0
         for tty, host in self.state.ssh_clients.items():
-            count += 1
-            msg += '``` {}. {} {}```\n'.format(count, tty, host)
+            if self.is_ipv4(host):
+                count += 1
+                msg += '``` {}. {} {}```\n'.format(count, tty, host)
 
         if count == 0:
             return ''
