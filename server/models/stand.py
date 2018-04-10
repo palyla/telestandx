@@ -34,7 +34,7 @@ class State:
         BUSY    = 1,
         ACTIVE  = 2,
 
-    def __init__(self, stand, connection_timeout_sec=1.5):
+    def __init__(self, stand, connection_timeout_sec=0.5):
         self.stand = stand
 
         try:
@@ -149,6 +149,8 @@ class Stand:
     def _check_users(self):
         if self.queue.empty():
             self.status = State.Status.FREE
+        else:
+            self.status = State.Status.BUSY
 
     @property
     def user(self):

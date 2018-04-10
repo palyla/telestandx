@@ -150,7 +150,7 @@ class ActivityWatcher:
 
     def routine(self):
         while True:
-            time.sleep(0.2)
+            time.sleep(1)
             tmp = dict()
             for event in self.events:
                 res = event()

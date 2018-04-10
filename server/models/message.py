@@ -44,10 +44,6 @@ class ProgressBarMessage:
     def message(self):
         return self.msg
 
-if __name__ == '__main__':
-    msg = ProgressBarMessage(1, 3)
-    print(msg.message())
-
 
 class StandOverviewMessage:
     def __init__(self, state):
