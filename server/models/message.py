@@ -102,6 +102,9 @@ class StandInfoMessage:
 
     @property
     def ssh_clients(self):
+        if '{}' == self.state.ssh_clients:
+            return ''
+
         msg = 'Logged in: \n'
         count = 0
         for tty, host in self.state.ssh_clients.items():

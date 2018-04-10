@@ -34,7 +34,7 @@ class State:
         BUSY    = 1,
         ACTIVE  = 2,
 
-    def __init__(self, stand, connection_timeout_sec=0.1):
+    def __init__(self, stand, connection_timeout_sec=1):
         self.stand = stand
 
         try:
@@ -103,7 +103,9 @@ class Stand:
     @state.getter
     def state(self):
         st = State(self)
-        if not st.is_connection_success:
+        if st.is_connection_success:
+            self._check_users()
+        else:
             self.status = State.Status.UNKNOWN
         return st
 

@@ -29,6 +29,8 @@ import psutil
 
 app = Flask(__name__)
 
+# pip3 install Xlib python-telegram-bot flask psutil
+
 '''
 {
   'upd_proc': {
@@ -105,12 +107,6 @@ app = Flask(__name__)
 }'''
 @app.route('/state')
 def state():
-    if not StaticVars.extended_info \
-            and 'upd_proc' not in StaticVars.extended_info \
-            and 'upd_users' not in StaticVars.extended_info:
-        # print(StaticVars.extended_info)
-        return "{}"
-
     if 'upd_proc' in StaticVars.extended_info:
         if 'java' in StaticVars.extended_info['upd_proc'] and 'hwTester.jar' in StaticVars.extended_info['upd_proc']['java']['cmdline'][2]:
             start_timestamp = datetime.datetime.fromtimestamp(StaticVars.extended_info['upd_proc']['perl']['create_time']).time().strftime('%H:%M')
