@@ -21,98 +21,13 @@ import threading
 import time
 import os
 import datetime
-
 import multiprocessing
+import psutil
 from Xlib import display
 from flask import Flask
 from flask import json
-import psutil
-
-
 
 # pip3 install Xlib python-telegram-bot flask psutil
-
-'''
-{
-  'upd_proc': {
-    'perl': {
-      'exe': '/usr/bin/perl',
-      'cmdline': [
-        '/usr/bin/perl',
-        'runEverydayTests.pl'
-      ],
-      'create_time': 1523037781.46
-    },
-    'java': {
-      'exe': '/usr/lib/jvm/jdk1.8.0_121/bin/java',
-      'cmdline': [
-        'java',
-        '-jar',
-        '/home/autotest/hwTester/hwTester.jar',
-        '/home/autotest/hwTester/properties',
-        '/home/autotest/hwTester/action_config/configs_for_tests/ssh_snmp.xml'
-      ],
-      'create_time': 1523265968.59
-    }
-  },
-  'upd_users': {
-    3136: {
-      'terminal': 'pts/0',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1518509056.0
-    },
-    5699: {
-      'terminal': 'pts/4',
-      'host': '192.168.38.6',
-      'name': 'autotest',
-      'started': 1523005952.0
-    },
-    23571: {
-      'terminal': 'pts/5',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522754816.0
-    },
-    27734: {
-      'terminal': 'pts/7',
-      'host': '10.0.112.36',
-      'name': 'autotest',
-      'started': 1523266304.0
-    },
-    32551: {
-      'terminal': 'pts/14',
-      'host': '10.0.7.200',
-      'name': 'autotest',
-      'started': 1522939520.0
-    },
-    19651: {
-      'terminal': 'pts/6',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522748928.0
-    },
-    19580: {
-      'terminal': 'pts/2',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522748800.0
-    },
-    23758: {
-      'terminal': 'pts/1',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522422656.0
-    }
-  }
-}'''
-
-
-class StaticVars:
-    mouse_x = 0
-    mouse_y = 0
-    last_activity = None
-    extended_info = None
 
 
 class ActivityWatcher:
@@ -158,23 +73,25 @@ def monitoring(state):
                     msg.update({marker: proc})
 
         if last_activity:
-            msg['last_activity'] = last_activity
+            msg['last_tty_activity'] = last_activity
         return msg
 
-    mouse_x = 0
-    mouse_y = 0
+    _mouse_x = None
+    _mouse_y = None
     def upd_mouse(display_env=':0'):
         global last_activity
+        nonlocal _mouse_x
+        nonlocal _mouse_y
         data = display.Display(display=display_env).screen().root.query_pointer()._data
         msg = {}
 
-        if mouse_x != data["root_x"] or mouse_y != data["root_y"]:
-            msg['mouse_x'] = data["root_x"]
-            msg['mouse_y'] = data["root_y"]
+        if _mouse_x != data["root_x"] or _mouse_y != data["root_y"]:
+            msg['mouse_x'] = _mouse_x = data["root_x"]
+            msg['mouse_y'] = _mouse_y = data["root_y"]
             last_activity = time.time()
 
             if last_activity:
-                msg['last_activity'] = last_activity
+                msg['last_mouse_activity'] = last_activity
             return msg
 
     def upd_users():
@@ -215,20 +132,35 @@ def networking(state):
         else:
             ssh_clients = '{}'
 
-        if 'last_activity' in state:
-            activity = datetime.datetime.fromtimestamp(float(state['last_activity'])).time().strftime('%H:%M')
-        else:
-            activity = 'unknown'
+        last_tty_activity = None
+        if 'upd_proc' in state:
+            if 'last_tty_activity' in state['upd_proc']:
+                last_tty_activity = datetime.datetime.fromtimestamp(float(state['upd_proc']['last_tty_activity'])).time()
+        last_mouse_activity = None
+        if 'upd_mouse' in state:
+            if 'last_mouse_activity' in state['upd_proc']:
+                last_mouse_activity = datetime.datetime.fromtimestamp(float(state['upd_proc']['last_mouse_activity'])).time()
+
+        activity = 'unknown'
+        if last_tty_activity and last_mouse_activity:
+            if last_tty_activity >= last_mouse_activity:
+                activity = last_tty_activity
+            else:
+                activity = last_mouse_activity
+        elif last_tty_activity:
+            activity = last_tty_activity
+        elif last_mouse_activity:
+            activity = last_mouse_activity
 
         ret_state = {
-            'last_activity': activity,
+            'last_activity': activity.strftime('%H:%M'),
             'ssh_clients': ssh_clients,
             'tests': tests
         }
 
         return json.dumps(ret_state)
 
-    app.run(host='0.0.0.0', debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', debug=False, use_reloader=False)
 
 
 if __name__ == "__main__":
