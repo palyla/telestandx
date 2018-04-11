@@ -21,123 +21,13 @@ import threading
 import time
 import os
 import datetime
+import multiprocessing
+import psutil
 from Xlib import display
 from flask import Flask
 from flask import json
-import psutil
-
-
-app = Flask(__name__)
 
 # pip3 install Xlib python-telegram-bot flask psutil
-
-'''
-{
-  'upd_proc': {
-    'perl': {
-      'exe': '/usr/bin/perl',
-      'cmdline': [
-        '/usr/bin/perl',
-        'runEverydayTests.pl'
-      ],
-      'create_time': 1523037781.46
-    },
-    'java': {
-      'exe': '/usr/lib/jvm/jdk1.8.0_121/bin/java',
-      'cmdline': [
-        'java',
-        '-jar',
-        '/home/autotest/hwTester/hwTester.jar',
-        '/home/autotest/hwTester/properties',
-        '/home/autotest/hwTester/action_config/configs_for_tests/ssh_snmp.xml'
-      ],
-      'create_time': 1523265968.59
-    }
-  },
-  'upd_users': {
-    3136: {
-      'terminal': 'pts/0',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1518509056.0
-    },
-    5699: {
-      'terminal': 'pts/4',
-      'host': '192.168.38.6',
-      'name': 'autotest',
-      'started': 1523005952.0
-    },
-    23571: {
-      'terminal': 'pts/5',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522754816.0
-    },
-    27734: {
-      'terminal': 'pts/7',
-      'host': '10.0.112.36',
-      'name': 'autotest',
-      'started': 1523266304.0
-    },
-    32551: {
-      'terminal': 'pts/14',
-      'host': '10.0.7.200',
-      'name': 'autotest',
-      'started': 1522939520.0
-    },
-    19651: {
-      'terminal': 'pts/6',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522748928.0
-    },
-    19580: {
-      'terminal': 'pts/2',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522748800.0
-    },
-    23758: {
-      'terminal': 'pts/1',
-      'host': 'localhost',
-      'name': 'autotest',
-      'started': 1522422656.0
-    }
-  }
-}'''
-@app.route('/state')
-def state():
-    if 'upd_proc' in StaticVars.extended_info:
-        if 'java' in StaticVars.extended_info['upd_proc'] and 'hwTester.jar' in StaticVars.extended_info['upd_proc']['java']['cmdline'][2]:
-            start_timestamp = datetime.datetime.fromtimestamp(StaticVars.extended_info['upd_proc']['perl']['create_time']).time().strftime('%H:%M')
-            current_scenario = StaticVars.extended_info['upd_proc']['java']['cmdline'][4]
-            tests = {'is_running': True, 'is_alive': True, 'start_time': start_timestamp, 'scenario': os.path.basename(current_scenario)}
-        else:
-            tests = {'is_running': False}
-    else:
-        tests = {'is_running': False}
-
-    if 'upd_users' in StaticVars.extended_info:
-        ssh_clients = StaticVars.extended_info['upd_users']
-    else:
-        ssh_clients = '{}'
-
-    last_activity = datetime.datetime.fromtimestamp(StaticVars.last_activity).time().strftime('%H:%M')
-
-    state = {
-        'last_activity': last_activity,
-        'ssh_clients': ssh_clients,
-        'tests': tests
-    }
-
-    return json.dumps(state)
-
-
-class StaticVars:
-    mouse_x = 0
-    mouse_y = 0
-    last_activity = None
-    extended_info = None
 
 
 class ActivityWatcher:
@@ -147,7 +37,7 @@ class ActivityWatcher:
     def add_event(self, handler):
         self.events.append(handler)
 
-    def routine(self):
+    def routine(self, store_to):
         while True:
             time.sleep(1)
             tmp = dict()
@@ -156,11 +46,15 @@ class ActivityWatcher:
                 if res:
                     tmp[event.__name__] = res
 
-            StaticVars.extended_info = tmp
+            store_to.clear()
+            store_to.update(tmp)
 
 
-if __name__ == "__main__":
+def monitoring(state):
+    last_activity = None
+
     def upd_proc():
+        global last_activity
         list_of_activity_markers = ['ls', 'cd', 'pwd']
         list_of_tests_markers = ['java', 'perl']
 
@@ -173,23 +67,32 @@ if __name__ == "__main__":
 
             for marker in list_of_activity_markers:
                 if marker in proc['cmdline']:
-                    StaticVars.last_activity = time.time()
+                    last_activity = time.time()
             for marker in list_of_tests_markers:
                 if marker in proc['cmdline'][0]:
                     msg.update({marker: proc})
 
+        if last_activity:
+            msg['last_tty_activity'] = last_activity
         return msg
 
+    _mouse_x = None
+    _mouse_y = None
     def upd_mouse(display_env=':0'):
+        global last_activity
+        nonlocal _mouse_x
+        nonlocal _mouse_y
         data = display.Display(display=display_env).screen().root.query_pointer()._data
+        msg = {}
 
-        if StaticVars.mouse_x != data["root_x"] or StaticVars.mouse_y != data["root_y"]:
-            StaticVars.mouse_x = data["root_x"]
-            StaticVars.mouse_y = data["root_y"]
+        if _mouse_x != data["root_x"] or _mouse_y != data["root_y"]:
+            msg['mouse_x'] = _mouse_x = data["root_x"]
+            msg['mouse_y'] = _mouse_y = data["root_y"]
+            last_activity = time.time()
 
-            StaticVars.last_activity = time.time()
-
-            return {'mouse_x': data["root_x"], 'mouse_y': data["root_y"]}
+            if last_activity:
+                msg['last_mouse_activity'] = last_activity
+            return msg
 
     def upd_users():
         users = dict()
@@ -198,14 +101,79 @@ if __name__ == "__main__":
                 users[usr[1]] = usr[2]
         return users
 
-    run = lambda: app.run(host='0.0.0.0', debug=True, use_reloader=False)
-    thread = threading.Thread(target=run, args=())
-    thread.daemon = True
-    thread.start()
-
     act = ActivityWatcher()
     act.add_event(upd_mouse)
     act.add_event(upd_proc)
     act.add_event(upd_users)
-    act.routine()
+    act.routine(state)
 
+
+def networking(state):
+    app = Flask(__name__)
+
+    @app.route('/state')
+    def state_query():
+        global state
+
+        if 'upd_proc' in state:
+            if 'java' in state['upd_proc'] and 'hwTester.jar' in \
+                    state['upd_proc']['java']['cmdline'][2]:
+                start_timestamp = datetime.datetime.fromtimestamp(state['upd_proc']['perl']['create_time']).time().strftime('%H:%M')
+                current_scenario = state['upd_proc']['java']['cmdline'][4]
+                tests = {'is_running': True, 'is_alive': True, 'start_time': start_timestamp,
+                         'scenario': os.path.basename(current_scenario)}
+            else:
+                tests = {'is_running': False}
+        else:
+            tests = {'is_running': False}
+
+        if 'upd_users' in state:
+            ssh_clients = state['upd_users']
+        else:
+            ssh_clients = '{}'
+
+        last_tty_activity = None
+        if 'upd_proc' in state:
+            if 'last_tty_activity' in state['upd_proc']:
+                last_tty_activity = datetime.datetime.fromtimestamp(float(state['upd_proc']['last_tty_activity'])).time()
+        last_mouse_activity = None
+        if 'upd_mouse' in state:
+            if 'last_mouse_activity' in state['upd_proc']:
+                last_mouse_activity = datetime.datetime.fromtimestamp(float(state['upd_proc']['last_mouse_activity'])).time()
+
+        activity = 'unknown'
+        if last_tty_activity and last_mouse_activity:
+            if last_tty_activity >= last_mouse_activity:
+                activity = last_tty_activity
+            else:
+                activity = last_mouse_activity
+        elif last_tty_activity:
+            activity = last_tty_activity
+        elif last_mouse_activity:
+            activity = last_mouse_activity
+
+        ret_state = {
+            'last_activity': activity.strftime('%H:%M'),
+            'ssh_clients': ssh_clients,
+            'tests': tests
+        }
+
+        return json.dumps(ret_state)
+
+    app.run(host='0.0.0.0', debug=False, use_reloader=False)
+
+
+if __name__ == "__main__":
+    with multiprocessing.Manager() as mgr:
+        state = mgr.dict()
+
+        mon_proc = multiprocessing.Process(target=monitoring, args=(state,))
+        net_proc = multiprocessing.Process(target=networking, args=(state,))
+
+        mon_proc.start()
+        time.sleep(1)
+        net_proc.start()
+        net_proc.join()
+
+        mon_proc.terminate()
+        mon_proc.join()
