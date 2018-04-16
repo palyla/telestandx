@@ -5,11 +5,16 @@ After=syslog.target network.target remote-fs.target nss-lookup.target
 [Service]
 WorkingDirectory=/opt/telestandx
 ExecStart=/usr/bin/python3 /opt/telestandx/agent/agent.py
-Restart=on-failure
+ExecReload=/bin/kill -HUP $MAINPID && /usr/bin/python3 /opt/telestandx/agent/agent.py
+ExecStop=/bin/kill -HUP $MAINPID
+Restart=always
 User=autotest
 Group=autotest
 KillMode=process
 Type=simple
+WatchdogSec=1800
+KillMode=mixed
+
 
 [Install]
 WantedBy=multi-user.target

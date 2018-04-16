@@ -45,16 +45,17 @@ class ActivityWatcher:
                 res = event()
                 if res:
                     tmp[event.__name__] = res
+                del res
 
             store_to.clear()
             store_to.update(tmp)
-
+            del tmp
 
 def monitoring(state):
     last_activity = None
 
     def upd_proc():
-        global last_activity
+        nonlocal last_activity
         list_of_activity_markers = ['ls', 'cd', 'pwd']
         list_of_tests_markers = ['java', 'perl']
 
@@ -79,7 +80,7 @@ def monitoring(state):
     _mouse_x = None
     _mouse_y = None
     def upd_mouse(display_env=':0'):
-        global last_activity
+        nonlocal last_activity
         nonlocal _mouse_x
         nonlocal _mouse_y
         data = display.Display(display=display_env).screen().root.query_pointer()._data
@@ -99,6 +100,7 @@ def monitoring(state):
         for usr in psutil.users():
             if 'localhost' not in usr[2]:
                 users[usr[1]] = usr[2]
+
         return users
 
     act = ActivityWatcher()
@@ -113,7 +115,7 @@ def networking(state):
 
     @app.route('/state')
     def state_query():
-        global state
+        nonlocal state
 
         if 'upd_proc' in state:
             if 'java' in state['upd_proc'] and 'hwTester.jar' in \
@@ -157,8 +159,12 @@ def networking(state):
             'ssh_clients': ssh_clients,
             'tests': tests
         }
+        out = json.dumps(ret_state)
+        del last_tty_activity
+        del last_mouse_activity
+        del ret_state
 
-        return json.dumps(ret_state)
+        return out
 
     app.run(host='0.0.0.0', debug=False, use_reloader=False)
 
