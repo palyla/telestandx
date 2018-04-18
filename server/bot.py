@@ -18,12 +18,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 '''
 
 # 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
+import os
+import signal
 import threading
+import time
+import datetime
+import pickle
 from functools import wraps
 
-import time
-
-import datetime
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from telegram import ParseMode
@@ -33,7 +35,7 @@ from server.models.message import StandShortInfoMessage
 from server.utils.characters import Emoji
 from server.utils.helper import print_exceptions
 
-
+SERIALIZE_FILE = 'queues.dat'
 LIST_OF_ADMINS = ()
 
 
@@ -250,9 +252,34 @@ class BotRoutine:
 
 if __name__ == '__main__':
     stands = {}
-    for stand in StandFactory.get():
-        stand.set_queue(QueueFactory.get_one())
-        stands[stand.alias] = stand
+    if not os.path.exists(SERIALIZE_FILE):
+        for stand in StandFactory.get():
+            stand.set_queue(QueueFactory.get_one())
+            stands[stand.alias] = stand
+    else:
+        to_load = dict()
+        with open(SERIALIZE_FILE, 'rb') as fd:
+            try:
+                to_load = pickle.load(fd)
+            except:
+                print('Failed to load saved queues!')
+
+        for stand in StandFactory.get():
+            for saved_alias, saved_queue in to_load.items():
+                if stand.alias == saved_alias:
+                    stand.queue.queue = pickle.loads(saved_queue)
+            stands[stand.alias] = stand
+
+    def handler(*args, **kwargs):
+        to_save = dict()
+        for alias, stand in stands.items():
+            to_save[alias] = pickle.dumps(stand.queue.queue)
+        with open(SERIALIZE_FILE, 'wb') as fd:
+            pickle.dump(to_save, fd)
+
+    signal.signal(signal.SIGTERM, handler)
+    import atexit
+    atexit.register(handler)
 
     def stands_monitor():
         free_stands_time_range = (datetime.time(0, 0, 0), datetime.time(0, 5, 0))
@@ -267,9 +294,9 @@ if __name__ == '__main__':
 
             time.sleep(3)
 
-    thread = threading.Thread(target=stands_monitor, args=())
-    thread.daemon = True
-    thread.start()
+    mthread = threading.Thread(target=stands_monitor, args=())
+    mthread.daemon = True
+    mthread.start()
 
     # bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
     bot = BotRoutine(stands)
