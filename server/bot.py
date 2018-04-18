@@ -77,6 +77,9 @@ class BotRoutine:
         self.handler = CommandHandler('free', self.free_cmd, pass_args=True)
         self.updater.dispatcher.add_handler(self.handler)
 
+        self.handler = CommandHandler('give', self.give_cmd, pass_args=True)
+        self.updater.dispatcher.add_handler(self.handler)
+
         self.handler = CommandHandler('giveup', self.giveup_cmd)
         self.updater.dispatcher.add_handler(self.handler)
 
@@ -138,6 +141,26 @@ class BotRoutine:
             alias = update.message['text'][1:].split()[0]
             stand = self.get_stand_by_alias(alias)
             stand.del_user(update.effective_user['id'])
+            self.print_stand_info(bot, update, alias)
+
+        elif 'give' in args[0]:
+            alias = update.message['text'][1:].split()[0]
+            stand = self.get_stand_by_alias(alias)
+
+            count = 0
+            users_order = dict()
+            for id in stand.queue:
+                count += 1
+                users_order[count] = id
+
+            if len(args) >= 1:
+                to_user_id = users_order[int(args[1])]
+
+                if to_user_id != update.effective_user['id']:
+                    stand.del_user(update.effective_user['id'])
+                    stand.del_user(to_user_id)
+                    stand.queue.queue.appendleft(to_user_id)
+
             self.print_stand_info(bot, update, alias)
 
     #@restricted
@@ -204,6 +227,26 @@ class BotRoutine:
                 pass
 
     @print_exceptions
+    def give_cmd(self, bot, update, args):
+        alias = update.message['text'][1:].split()[1]
+        stand = self.get_stand_by_alias(alias)
+
+        count = 0
+        users_order = dict()
+        for id in stand.queue:
+            count += 1
+            users_order[count] = id
+
+        if len(args) >= 2:
+            to_user_id = users_order[int(args[1])]
+            if to_user_id != update.effective_user['id']:
+                stand.del_user(update.effective_user['id'])
+                stand.del_user(to_user_id)
+                stand.queue.queue.appendleft(to_user_id)
+
+        self.print_stand_info(bot, update, alias)
+
+    @print_exceptions
     def my_cmd(self, bot, update):
         for alias, stand in self.stands.items():
             if update.effective_user['id'] in stand.queue.queue:
@@ -224,12 +267,13 @@ class BotRoutine:
     def alias_test(self, bot, update, args):
         '''
             Examples of aliases:
-                /1        - Show basic info and queue
-                /1 take   - Take the stand
-                /1 give   - Give the stand to person
-                /1 return - Return the stand
+                /1          - Show basic info and queue
+                /1 take     - Take the stand
+                /1 give 2   - Give the stand to person, 2 is a number of queue
+                /1 return   - Return the stand
                 /take 1,2,3,4,5,6,7,8,9 - Take multiply stands
-                /giveup   - Free all queue's
+                /giveup     - Free all queue's
+                /give 1 2   - Give the stand to person, 1 is a number of stand, 2 is a number of queue
         '''
 
         bot.send_message(

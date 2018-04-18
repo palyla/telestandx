@@ -168,9 +168,6 @@ class StandInfoMessage:
                                  self.queue,
                                  self.test_progress,
                                  self.ssh_clients)
-        # return '{}{}{}'.format(self.header,
-        #                          self.queue,
-        #                          self.test_progress)
 
 class StandShortInfoMessage:
     def __init__(self, state):
