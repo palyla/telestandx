@@ -25,6 +25,7 @@ import time
 import datetime
 import pickle
 from functools import wraps
+from collections import OrderedDict
 
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
@@ -251,7 +252,7 @@ class BotRoutine:
 
 
 if __name__ == '__main__':
-    stands = {}
+    stands = OrderedDict()
     if not os.path.exists(SERIALIZE_FILE):
         for stand in StandFactory.get():
             stand.set_queue(QueueFactory.get_one())
