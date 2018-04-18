@@ -36,6 +36,9 @@ from server.models.message import StandShortInfoMessage
 from server.utils.characters import Emoji
 from server.utils.helper import print_exceptions
 
+CONNECT_TIMEOUT = 10
+READ_TIMEOUT = 10
+
 SERIALIZE_FILE = 'queues.dat'
 LIST_OF_ADMINS = ()
 
@@ -59,14 +62,24 @@ class BotRoutine:
 
         if proxy_url:
             self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
-              'proxy_url': proxy_url,
+                'proxy_url': proxy_url,
+                'read_timeout': READ_TIMEOUT,
+                'connect_timeout': CONNECT_TIMEOUT
             })
             # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
-            #   'proxy_url': proxy_url,
+            #     'proxy_url': proxy_url,
+            #     'read_timeout': READ_TIMEOUT,
+            #     'connect_timeout': CONNECT_TIMEOUT
             # })
         else:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60')
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo')
+            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
+                'read_timeout': READ_TIMEOUT,
+                'connect_timeout': CONNECT_TIMEOUT
+            })
+            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+            #     'read_timeout': READ_TIMEOUT,
+            #     'connect_timeout': CONNECT_TIMEOUT
+            # })
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
@@ -138,10 +151,16 @@ class BotRoutine:
             self.print_stand_info(bot, update, alias)
 
         elif 'free' in args[0]:
+            chat_id = update.message.chat.id
             alias = update.message['text'][1:].split()[0]
             stand = self.get_stand_by_alias(alias)
+            previous_user = stand.user
             stand.del_user(update.effective_user['id'])
             self.print_stand_info(bot, update, alias)
+
+            if stand.user != previous_user and stand.user != None:
+                msg = "{}, {} is yours!".format(bot.get_chat_member(chat_id, stand.user).user.name, '/{}'.format(stand.alias))
+                bot.send_message(chat_id=update.message.chat_id, text=msg)
 
         elif 'give' in args[0]:
             alias = update.message['text'][1:].split()[0]
@@ -168,15 +187,15 @@ class BotRoutine:
     def stands_cmd(self, bot, update):
         chat_id = update.message.chat.id
 
-        bot.send_message(
-            parse_mode=ParseMode.MARKDOWN,
-            chat_id=update.message.chat_id,
-            text='`{0} - Можно забирать \n'
-                 '{2} - Занят \n'
-                 '{1} - Есть активность за последние 15 минут \n'
-                 '{3} - Недоступен в сети \n`'
-                .format(Emoji.UTF8.CHECK_MARK, Emoji.UTF8.WARNING, Emoji.UTF8.CROSS, Emoji.UTF8.SLEEP)
-        )
+        # bot.send_message(
+        #     parse_mode=ParseMode.MARKDOWN,
+        #     chat_id=update.message.chat_id,
+        #     text='`{0} - Можно забирать \n'
+        #          '{2} - Занят \n'
+        #          '{1} - Есть активность за последние 15 минут \n'
+        #          '{3} - Недоступен в сети \n`'
+        #         .format(Emoji.UTF8.CHECK_MARK, Emoji.UTF8.WARNING, Emoji.UTF8.CROSS, Emoji.UTF8.SLEEP)
+        # )
 
         msg = ''
         for id, stand in self.stands.items():
@@ -198,16 +217,23 @@ class BotRoutine:
 
     @print_exceptions
     def free_cmd(self, bot, update, args):
+        chat_id = update.message.chat.id
         aliases = update.message['text'][1:].split()[1:]
         for alias in aliases:
             stand = self.get_stand_by_alias(alias)
+            previous_user = stand.user
             stand.del_user(update.effective_user['id'])
             self.print_stand_info(bot, update, alias)
+
+            if stand.user != previous_user and stand.user != None:
+                msg = "{}, {} is yours!".format(bot.get_chat_member(chat_id, stand.user).user.name, '/{}'.format(stand.alias))
+                bot.send_message(chat_id=update.message.chat_id, text=msg)
 
     @print_exceptions
     def giveup_cmd(self, bot, update):
         for alias, stand in self.stands.items():
             try:
+                previous_user = stand.user
                 stand.del_user(update.effective_user['id'])
                 chat_id = update.message.chat.id
 
@@ -223,6 +249,10 @@ class BotRoutine:
                     chat_id=update.message.chat_id,
                     text=msg
                 )
+                if stand.user != previous_user and stand.user != None:
+                    msg = "{}, {} is yours!".format(bot.get_chat_member(chat_id, stand.user).user.name,
+                                                    '/{}'.format(stand.alias))
+                    bot.send_message(chat_id=update.message.chat_id, text=msg)
             except:
                 pass
 

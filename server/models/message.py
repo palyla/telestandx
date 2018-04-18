@@ -191,7 +191,7 @@ class StandShortInfoMessage:
         elif self.state.status == State.Status.ACTIVE:
             emoji = Emoji.UTF8.WARNING
 
-        return '{} *{}* at @{},  last activity {}\n'.format(emoji, self.state.ip, self.state.user, 'unknown')
+        return '{} *{}* at @{}\n'.format(emoji, self.state.ip, self.state.user)
 
     @property
     def queue(self):
