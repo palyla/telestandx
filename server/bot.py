@@ -59,25 +59,25 @@ class BotRoutine:
         self.stands = stands
 
         if proxy_url:
-            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
-            #     'proxy_url': proxy_url,
-            #     'read_timeout': READ_TIMEOUT,
-            #     'connect_timeout': CONNECT_TIMEOUT
-            # })
-            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+            self.updater = Updater(token='483769578:AAH97nRZlEv-i434RgfnvyKDb-H3G0FGqmA', request_kwargs={
                 'proxy_url': proxy_url,
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
-        else:
-            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
+            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+            #     'proxy_url': proxy_url,
             #     'read_timeout': READ_TIMEOUT,
             #     'connect_timeout': CONNECT_TIMEOUT
             # })
-            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+        else:
+            self.updater = Updater(token='483769578:AAH97nRZlEv-i434RgfnvyKDb-H3G0FGqmA', request_kwargs={
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
+            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+            #     'read_timeout': READ_TIMEOUT,
+            #     'connect_timeout': CONNECT_TIMEOUT
+            # })
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
@@ -365,8 +365,8 @@ if __name__ == '__main__':
     mthread.daemon = True
     mthread.start()
 
-    # bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
-    bot = BotRoutine(stands)
+    bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
+    # bot = BotRoutine(stands)
 
     def handler(*args, **kwargs):
         is_terminate.set()
