@@ -44,8 +44,6 @@ LIST_OF_ADMINS = ()
 
 
 def restricted(func):
-    print('restricted!')
-
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
         user_id = update.effective_user.id
@@ -61,25 +59,25 @@ class BotRoutine:
         self.stands = stands
 
         if proxy_url:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
-                'proxy_url': proxy_url,
-                'read_timeout': READ_TIMEOUT,
-                'connect_timeout': CONNECT_TIMEOUT
-            })
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
             #     'proxy_url': proxy_url,
             #     'read_timeout': READ_TIMEOUT,
             #     'connect_timeout': CONNECT_TIMEOUT
             # })
-        else:
-            self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
+            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+                'proxy_url': proxy_url,
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+        else:
+            # self.updater = Updater(token='483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60', request_kwargs={
             #     'read_timeout': READ_TIMEOUT,
             #     'connect_timeout': CONNECT_TIMEOUT
             # })
+            self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
+                'read_timeout': READ_TIMEOUT,
+                'connect_timeout': CONNECT_TIMEOUT
+            })
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
@@ -108,6 +106,9 @@ class BotRoutine:
 
     def start(self):
         self.updater.start_polling()
+
+    def stop(self):
+        self.updater.stop()
 
     def get_stand_by_alias(self, alias):
         try:
@@ -345,28 +346,19 @@ if __name__ == '__main__':
                     stand.queue.queue = pickle.loads(saved_queue)
             stands[stand.alias] = stand
 
-    def handler(*args, **kwargs):
-        to_save = dict()
-        for alias, stand in stands.items():
-            to_save[alias] = pickle.dumps(stand.queue.queue)
-        with open(SERIALIZE_FILE, 'wb') as fd:
-            pickle.dump(to_save, fd)
-
-    signal.signal(signal.SIGTERM, handler)
-    import atexit
-    atexit.register(handler)
-
+    is_terminate = threading.Event()
     def stands_monitor():
-        free_stands_time_range = (datetime.time(0, 0, 0), datetime.time(0, 5, 0))
+        free_time = datetime.time(0, 0, 0)
 
         while True:
+            if is_terminate.is_set():
+                break
             now = datetime.datetime.now().time()
 
             for alias, stand in stands.items():
                 state = stand.state
-                if free_stands_time_range[0] <= now <= free_stands_time_range[1]:
+                if now == free_time and not stand.queue.empty():
                     stand.set_queue(QueueFactory.get_one())
-
             time.sleep(3)
 
     mthread = threading.Thread(target=stands_monitor, args=())
@@ -375,5 +367,23 @@ if __name__ == '__main__':
 
     # bot = BotRoutine(stands, proxy_url='http://127.0.0.1:3128')
     bot = BotRoutine(stands)
+
+    def handler(*args, **kwargs):
+        is_terminate.set()
+        mthread.join()
+
+        bot.stop()
+
+        to_save = dict()
+        for alias, stand in stands.items():
+            to_save[alias] = pickle.dumps(stand.queue.queue)
+        with open(SERIALIZE_FILE, 'wb') as fd:
+            pickle.dump(to_save, fd)
+
+    signal.signal(signal.SIGTERM, handler)
+    signal.signal(signal.SIGINT, handler)
+    import atexit
+    atexit.register(handler)
+
     bot.start()
 
