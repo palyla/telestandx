@@ -17,7 +17,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 '''
 
-# 483769578:AAGFIRimDTitSlIXbGasW2BQX2qDrnblq60   @telestandx_bot
 import os
 import signal
 import threading
@@ -59,25 +58,16 @@ class BotRoutine:
         self.stands = stands
 
         if proxy_url:
-            self.updater = Updater(token='483769578:AAH97nRZlEv-i434RgfnvyKDb-H3G0FGqmA', request_kwargs={
+            self.updater = Updater(token='', request_kwargs={
                 'proxy_url': proxy_url,
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
-            #     'proxy_url': proxy_url,
-            #     'read_timeout': READ_TIMEOUT,
-            #     'connect_timeout': CONNECT_TIMEOUT
-            # })
         else:
-            self.updater = Updater(token='483769578:AAH97nRZlEv-i434RgfnvyKDb-H3G0FGqmA', request_kwargs={
+            self.updater = Updater(token='', request_kwargs={
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
-            # self.updater = Updater(token='500993943:AAGJX5EmLVcA0oKFyio7_g-Fmfm5eyjnsmo', request_kwargs={
-            #     'read_timeout': READ_TIMEOUT,
-            #     'connect_timeout': CONNECT_TIMEOUT
-            # })
 
         self.handler = CommandHandler('stands', self.stands_cmd)
         self.updater.dispatcher.add_handler(self.handler)
