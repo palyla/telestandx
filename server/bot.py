@@ -56,15 +56,16 @@ def restricted(func):
 class BotRoutine:
     def __init__(self, stands, proxy_url=None):
         self.stands = stands
+        token = os.environ['TELESTANDX_TOKEN']
 
         if proxy_url:
-            self.updater = Updater(token='', request_kwargs={
+            self.updater = Updater(token=token, request_kwargs={
                 'proxy_url': proxy_url,
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
         else:
-            self.updater = Updater(token='', request_kwargs={
+            self.updater = Updater(token=token, request_kwargs={
                 'read_timeout': READ_TIMEOUT,
                 'connect_timeout': CONNECT_TIMEOUT
             })
@@ -337,6 +338,7 @@ if __name__ == '__main__':
             stands[stand.alias] = stand
 
     is_terminate = threading.Event()
+
     def stands_monitor():
         free_time = datetime.time(0, 0, 0)
 

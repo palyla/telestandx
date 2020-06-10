@@ -44,4 +44,4 @@ class StandFactory:
                 config[block]['platforms'],
                 config[block]['alias']
             )
-        raise StopIteration
+        # raise StopIteration
