@@ -57,7 +57,7 @@ class BotRoutine:
     def __init__(self, stands, proxy_url=None):
         self.stands = stands
         token = os.environ['TELESTANDX_TOKEN']
-
+        proxy_url = os.environ['TELESTANDX_PROXY_URL']
         if proxy_url:
             self.updater = Updater(token=token, request_kwargs={
                 'proxy_url': proxy_url,
